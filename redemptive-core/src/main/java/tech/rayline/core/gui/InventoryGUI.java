@@ -153,7 +153,7 @@ public final class InventoryGUI {
         observers.forEach(Player::closeInventory);
         observers.clear();
         touchedSlots.clear();
-        buttons.clear();
+        buttons.keySet().forEach(this::clearButton);
     }
 
     /**

@@ -81,6 +81,10 @@ public abstract class RedemptivePlugin extends JavaPlugin {
         }
     }
 
+    public final Formatter.FormatBuilder formatAt(String key) {
+        return getFormatter().begin(key);
+    }
+
     //register commands
     public final <T extends RDCommand> T registerCommand(T command) {
         PluginCommand command1;
