@@ -12,7 +12,7 @@ repositories {
 }
 
 dependencies {
-    compile 'org.spigotmc:spigot-api:1.8.7-R0.1-SNAPSHOT'
+    compile 'org.spigotmc:spigot-api:1.8.8-R0.1-SNAPSHOT'
     compile 'org.projectlombok:lombok:1.16.2'
     compile 'io.reactivex:rxjava:1.0.16'
     testCompile group: 'junit', name: 'junit', version: '4.11'

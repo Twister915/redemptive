@@ -7,6 +7,7 @@ import org.bukkit.command.CommandMap;
 import org.bukkit.command.PluginCommand;
 import org.bukkit.event.Event;
 import org.bukkit.event.EventPriority;
+import org.bukkit.event.Listener;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -134,5 +135,10 @@ public abstract class RedemptivePlugin extends JavaPlugin {
     @SafeVarargs
     public final <T extends Event> Observable<T> observeEvent(EventPriority priority, boolean ignoreCancelled, Class<? extends T>... events) {
         return eventStreamer.observeEvent(priority, ignoreCancelled, events);
+    }
+
+    public <T extends Listener> T registerListener(T listener) {
+        getServer().getPluginManager().registerEvents(listener, this);
+        return listener;
     }
 }
