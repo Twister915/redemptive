@@ -62,6 +62,8 @@ public abstract class RedemptivePlugin extends JavaPlugin {
                 formatter = new Formatter(formatsFile);
             }
             else formatter = null;
+
+            onModuleEnable();
         } catch (Throwable t) {
             getLogger().severe("Unable to properly enable this plugin!");
             Bukkit.getPluginManager().disablePlugin(this);
