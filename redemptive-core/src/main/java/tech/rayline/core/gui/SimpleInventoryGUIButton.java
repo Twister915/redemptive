@@ -14,7 +14,7 @@ public class SimpleInventoryGUIButton extends InventoryGUIButton {
     }
 
     @Override
-    protected void onPlayerClick(Player player, ClickAction action) throws EmptyHandlerException {
+    public void onPlayerClick(Player player, ClickAction action) throws EmptyHandlerException {
         try {
             this.action.call(new InventoryGUIAction(player, action));
         } catch (Exception e) {

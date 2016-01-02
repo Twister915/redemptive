@@ -18,7 +18,7 @@ public abstract class InventoryGUIButton {
         this.currentRepresentation = stack;
     }
 
-    protected void onPlayerClick(Player player, ClickAction action) throws EmptyHandlerException { throw new EmptyHandlerException(); }
+    public void onPlayerClick(Player player, ClickAction action) throws EmptyHandlerException { throw new EmptyHandlerException(); }
     protected void onRemove() {}
     protected void onAdd() {}
     protected void onUpdate() {}
