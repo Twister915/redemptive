@@ -27,14 +27,26 @@ public final class ItemShorthand {
         return new ItemShorthand(material);
     }
 
+    public static ItemShorthand withMaterial(Material material) {
+        return setMaterial(material);
+    }
+
     public ItemShorthand setQuantity(int quantity) {
         this.quantity = quantity;
         return this;
     }
 
+    public ItemShorthand withQuantity(int quantity) {
+        return setQuantity(quantity);
+    }
+
     public ItemShorthand setName(String name) {
         this.name = name;
         return this;
+    }
+
+    public ItemShorthand withName(String name) {
+        return setName(name);
     }
 
     public ItemShorthand setLore(String l) {
@@ -43,14 +55,33 @@ public final class ItemShorthand {
         return this;
     }
 
+    public ItemShorthand withLore(String lore) {
+        return setLore(lore);
+    }
+
     public ItemShorthand setDataValue(short dataValue) {
         this.dataValue = dataValue;
         return this;
     }
 
+    public ItemShorthand withDataValue(short dataValue) {
+        return setDataValue(dataValue);
+    }
+
     public ItemShorthand setEnchantment(Enchantment enchantment, int level) {
         checkEnchantments();
         enchantments.put(enchantment, level);
+        return this;
+    }
+
+    public ItemShorthand withEnchantment(Enchantment enchantment, int level) {
+        return setEnchantment(enchantment, level);
+    }
+
+    public ItemShorthand withLore(List<String> lore) {
+        checkLore();
+        this.lore.clear();
+        this.lore.addAll(lore);
         return this;
     }
 

@@ -1,5 +1,6 @@
 package tech.rayline.core.gui;
 
+import com.google.common.collect.ImmutableList;
 import org.bukkit.Bukkit;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
@@ -19,17 +20,14 @@ import tech.rayline.core.command.EmptyHandlerException;
 import tech.rayline.core.plugin.RedemptivePlugin;
 import tech.rayline.core.util.SoundUtil;
 
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * This class represents an InventoryGUI which can be opened for players
  *
  * @version 2.0
  */
-public final class InventoryGUI {
+public class InventoryGUI {
     /**
      * A collection of all the players who currently have the inventory GUI open
      */
@@ -156,6 +154,14 @@ public final class InventoryGUI {
         buttons.keySet().forEach(this::clearButton);
     }
 
+    public void addButton(InventoryGUIButton button) {
+        setButton(button, getNextSlot());
+    }
+
+    public ImmutableList<InventoryGUIButton> getButtons() {
+        return ImmutableList.copyOf(buttons.values());
+    }
+
     /**
      * Changes the button at a location
      * @param button The button you wish to now be at that location
@@ -267,7 +273,36 @@ public final class InventoryGUI {
     }
 
     //used to mark a slot for update
-    private void markForUpdate(Integer slot) {
+    protected void markForUpdate(Integer slot) {
         touchedSlots.add(slot);
+    }
+
+    public int getSlotFor(InventoryGUIButton button) {
+        for (Map.Entry<Integer, InventoryGUIButton> entry : buttons.entrySet()) {
+            if (entry.getValue().equals(button))
+                return entry.getKey();
+        }
+
+        throw new NoSuchElementException("Could not find that button!");
+    }
+
+    protected void markForUpdate(InventoryGUIButton button) {
+        markForUpdate(getSlotFor(button));
+    }
+
+    public void removeButton(InventoryGUIButton button) {
+        removeButton(getSlotFor(button));
+    }
+
+    public void removeButton(int slot) {
+        clearButton(slot);
+    }
+
+    public Integer getNextSlot() {
+        for (int i = 0; i < bukkitInventory.getSize(); i++) {
+            if (getButtonAt(i) == null)
+                return i;
+        }
+        throw new ArrayIndexOutOfBoundsException("There are no more slots in the inventory!");
     }
 }
