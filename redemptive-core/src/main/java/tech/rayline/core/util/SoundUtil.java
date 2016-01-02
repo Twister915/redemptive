@@ -5,6 +5,6 @@ import org.bukkit.entity.Player;
 
 public class SoundUtil {
     public static void playTo(Player player, Sound sound) {
-
+        player.playSound(player.getLocation(), sound, 20f, 0f);
     }
 }
