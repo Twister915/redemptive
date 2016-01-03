@@ -11,7 +11,6 @@ import org.bukkit.command.*;
 import org.bukkit.entity.Player;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Data
 public abstract class RDCommand implements CommandExecutor, TabCompleter {
@@ -174,10 +173,9 @@ public abstract class RDCommand implements CommandExecutor, TabCompleter {
             //And if we found some
             if (subCommandsForPartial.size() != 0) {
                 //Get the command names
-                List<String> strings = subCommandsForPartial.stream().collect(Collectors.toList());
-                strings.addAll(handleTabComplete(sender, command, alias, args));
+                subCommandsForPartial.addAll(handleTabComplete(sender, command, alias, args));
                 //And return them
-                return strings;
+                return subCommandsForPartial;
             }
             //Otherwise, head to the delegated call at the bottom.
         }

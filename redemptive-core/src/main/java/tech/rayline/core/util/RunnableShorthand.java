@@ -7,6 +7,7 @@ import org.bukkit.scheduler.BukkitTask;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 @RequiredArgsConstructor(staticName = "forPlugin")
 public final class RunnableShorthand {
@@ -43,7 +44,8 @@ public final class RunnableShorthand {
         return new BukkitRunnable() {
             @Override
             public void run() {
-                runnables.forEach(Runnable::run);
+                for (Runnable runnable : runnables)
+                    runnable.run();
             }
         };
     }

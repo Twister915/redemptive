@@ -9,6 +9,7 @@ import org.bukkit.plugin.Plugin;
 import rx.Observable;
 import rx.Subscriber;
 import rx.exceptions.Exceptions;
+import rx.functions.Action0;
 import rx.subscriptions.Subscriptions;
 import tech.rayline.core.inject.Injectable;
 import tech.rayline.core.inject.InjectionProvider;
@@ -31,13 +32,13 @@ public final class PacketStreamer extends BaseStreamer {
         return getPacketObservable(ListenerPriority.NORMAL, packets);
     }
 
-    public Observable<PacketEvent> getPacketObservable(ListenerPriority listenerPriority, PacketType... packets) {
+    public Observable<PacketEvent> getPacketObservable(final ListenerPriority listenerPriority, final PacketType... packets) {
         //create an observable which
         return Observable.create(new Observable.OnSubscribe<PacketEvent>() {
             @Override
-            public void call(Subscriber<? super PacketEvent> subscriber) {
+            public void call(final Subscriber<? super PacketEvent> subscriber) {
                 //creates a packet adapter that forwards all packets collected to the subscriber
-                PacketAdapter packetAdapter = new PacketAdapter(plugin, listenerPriority, packets) {
+                final PacketAdapter packetAdapter = new PacketAdapter(plugin, listenerPriority, packets) {
                     @Override
                     public void onPacketReceiving(PacketEvent event) {
                         try {
@@ -51,13 +52,17 @@ public final class PacketStreamer extends BaseStreamer {
                 ProtocolLibrary.getProtocolManager().addPacketListener(packetAdapter);
                 //and unregisters the adapter on unsubscription
                 subscriber.add(Subscriptions
-                        .create(() ->
-                            ProtocolLibrary
-                                .getProtocolManager()
-                                .removePacketListener(packetAdapter)
+                        .create(new Action0() {
+                                    @Override
+                                    public void call() {
+                                        ProtocolLibrary
+                                                .getProtocolManager()
+                                                .removePacketListener(packetAdapter);
+                                    }
+                                }
                         )
                 );
             }
-        }).compose(getSyncTransformer());
+        }).compose(this.<PacketEvent>getSyncTransformer());
     }
 }

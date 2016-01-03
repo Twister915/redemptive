@@ -1,6 +1,5 @@
 package tech.rayline.core.gui;
 
-import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import org.bukkit.Bukkit;
 import org.bukkit.Sound;
@@ -14,7 +13,11 @@ import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import rx.Observable;
+import rx.Subscriber;
 import rx.Subscription;
+import rx.functions.Action0;
+import rx.functions.Action1;
+import rx.functions.Func1;
 import rx.subscriptions.CompositeSubscription;
 import rx.subscriptions.Subscriptions;
 import tech.rayline.core.command.EmptyHandlerException;
@@ -22,6 +25,7 @@ import tech.rayline.core.plugin.RedemptivePlugin;
 import tech.rayline.core.util.SoundUtil;
 
 import java.util.*;
+import java.util.function.Consumer;
 
 /**
  * This class represents an InventoryGUI which can be opened for players
@@ -90,55 +94,85 @@ public class InventoryGUI {
         subscription.add(
                 //this is the main subscription that we use to actually catch clicks
                 plugin.observeEvent(InventoryClickEvent.class)
-                .filter(event -> event.getInventory().equals(bukkitInventory) && observers.contains(event.getWhoClicked()))
-                .subscribe(event -> {
-                    event.setCancelled(true);
-                    try {
-                        InventoryGUIButton buttonAt = getButtonAt(event.getSlot());
-                        if (buttonAt == null)
-                            return;
-
-                        Player whoClicked = (Player) event.getWhoClicked();
+                .filter(new Func1<InventoryClickEvent, Boolean>() {
+                    @Override
+                    public Boolean call(InventoryClickEvent event) {
+                        //noinspection SuspiciousMethodCalls
+                        return event.getInventory().equals(bukkitInventory) && observers.contains(event.getWhoClicked());
+                    }
+                })
+                .subscribe(new Action1<InventoryClickEvent>() {
+                    @Override
+                    public void call(InventoryClickEvent event) {
+                        event.setCancelled(true);
                         try {
-                            buttonAt.onPlayerClick(whoClicked, ClickAction.from(event.getClick()));
-                        } catch (EmptyHandlerException e) {
-                            SoundUtil.playTo(whoClicked, Sound.NOTE_PLING);
+                            InventoryGUIButton buttonAt = InventoryGUI.this.getButtonAt(event.getSlot());
+                            if (buttonAt == null)
+                                return;
+
+                            Player whoClicked = (Player) event.getWhoClicked();
+                            try {
+                                buttonAt.onPlayerClick(whoClicked, ClickAction.from(event.getClick()));
+                            } catch (EmptyHandlerException e) {
+                                SoundUtil.playTo(whoClicked, Sound.NOTE_PLING);
+                            }
+                        } catch (Exception e) {
+                            e.printStackTrace();
                         }
-                    } catch (Exception e) {
-                        e.printStackTrace();
                     }
                 }));
 
         subscription.add(
                 //this prevents people from moving items in and out of the inventory GUI
                 plugin.observeEvent(InventoryMoveItemEvent.class)
-                .filter(event -> event.getSource().equals(bukkitInventory) || event.getDestination().equals(bukkitInventory))
-                .subscribe(event -> event.setCancelled(true))
+                .filter(new Func1<InventoryMoveItemEvent, Boolean>() {
+                    @Override
+                    public Boolean call(InventoryMoveItemEvent event) {
+                        return event.getSource().equals(bukkitInventory) || event.getDestination().equals(bukkitInventory);
+                    }
+                })
+                .subscribe(new Action1<InventoryMoveItemEvent>() {
+                    @Override
+                    public void call(InventoryMoveItemEvent event) {
+                        event.setCancelled(true);
+                    }
+                })
         );
 
         return subscription;
     }
 
-    public Observable<InventoryGUIAction> observeSlot(ItemStack buttonStack, Integer slot) {
-        return Observable.create((Observable.OnSubscribe<InventoryGUIAction>) subscriber -> {
-            setButton(new SimpleInventoryGUIButton(buttonStack, action -> {
-                if (!subscriber.isUnsubscribed())
-                    subscriber.onNext(action);
-            }) {
-                @Override
-                protected void onRemove() {
-                    if (!subscriber.isUnsubscribed())
-                        subscriber.onCompleted();
-                }
+    public Observable<InventoryGUIAction> observeSlot(final ItemStack buttonStack, final Integer slot) {
+        return Observable.create(new Observable.OnSubscribe<InventoryGUIAction>() {
+            @Override
+            public void call(final Subscriber<? super InventoryGUIAction> subscriber) {
+                InventoryGUI.this.setButton(new SimpleInventoryGUIButton(buttonStack, new Action1<InventoryGUIAction>() {
+                    @Override
+                    public void call(InventoryGUIAction action) {
+                        if (!subscriber.isUnsubscribed())
+                            subscriber.onNext(action);
+                    }
+                }) {
+                    @Override
+                    protected void onRemove() {
+                        if (!subscriber.isUnsubscribed())
+                            subscriber.onCompleted();
+                    }
 
-                @Override
-                protected void onAdd() {
-                    if (!subscriber.isUnsubscribed())
-                        subscriber.onStart();
-                }
-            }, slot);
+                    @Override
+                    protected void onAdd() {
+                        if (!subscriber.isUnsubscribed())
+                            subscriber.onStart();
+                    }
+                }, slot);
 
-            subscriber.add(Subscriptions.create(() -> clearButton(slot)));
+                subscriber.add(Subscriptions.create(new Action0() {
+                    @Override
+                    public void call() {
+                        InventoryGUI.this.clearButton(slot);
+                    }
+                }));
+            }
         });
     }
 
@@ -149,10 +183,12 @@ public class InventoryGUI {
      */
     public void invalidate() {
         mainSubscription.unsubscribe();
-        observers.forEach(Player::closeInventory);
+        for (Player observer : observers)
+            observer.closeInventory();
         observers.clear();
         touchedSlots.clear();
-        buttons.keySet().forEach(this::clearButton);
+        for (Integer integer : buttons.keySet())
+            clearButton(integer);
     }
 
     public void addButton(InventoryGUIButton button) {
@@ -224,7 +260,8 @@ public class InventoryGUI {
             bukkitInventory.setItem(touchedSlot, itemStack);
         }
 
-        observers.forEach(Player::updateInventory);
+        for (Player observer : observers)
+            observer.updateInventory();
         touchedSlots.clear();
     }
 
@@ -232,22 +269,47 @@ public class InventoryGUI {
      * Opens the inventory for the player
      * @param player The player who you want to show this inventory to
      */
-    public void openFor(Player player) {
+    public void openFor(final Player player) {
         if (mainSubscription.isUnsubscribed())
             throw new IllegalStateException("You cannot use this inventory anymore! You have invalidated it!");
 
         observers.add(player);
         //listens to the player quit event and the inventory close event
         Observable.merge(
-                plugin.observeEvent(PlayerQuitEvent.class).map(PlayerEvent::getPlayer),
-                plugin.observeEvent(InventoryCloseEvent.class).map(InventoryCloseEvent::getPlayer).cast(Player.class))
+                plugin.observeEvent(PlayerQuitEvent.class).map(new Func1<PlayerQuitEvent, Player>() {
+                    @Override
+                    public Player call(PlayerQuitEvent playerQuitEvent) {
+                        return playerQuitEvent.getPlayer();
+                    }
+                }),
+                plugin.observeEvent(InventoryCloseEvent.class).map(new Func1<InventoryCloseEvent, Player>() {
+                    @Override
+                    public Player call(InventoryCloseEvent inventoryCloseEvent) {
+                        return (Player) inventoryCloseEvent.getPlayer();
+                    }
+                })
                 //with both- filter out where the player is not the one we're looking for
-                .filter(pl -> pl.equals(player))
+                .filter(new Func1<Player, Boolean>() {
+                    @Override
+                    public Boolean call(Player pl) {
+                        return pl.equals(player);
+                    }
+                })
                 //only take one, and only while the player still has the inventory open
-                .takeWhile(pl -> isOpenFor(player))
+                .takeWhile(new Func1<Player, Boolean>() {
+                    @Override
+                    public Boolean call(Player pl) {
+                        return InventoryGUI.this.isOpenFor(player);
+                    }
+                }))
                 .take(1)
                 //notify us that the inventory has been closed!
-                .subscribe(this::inventoryClosed);
+                .subscribe(new Action1<Player>() {
+                    @Override
+                    public void call(Player player) {
+                        inventoryClosed(player);
+                    }
+                });
 
         //open the inventory
         player.openInventory(bukkitInventory);

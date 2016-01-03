@@ -17,7 +17,12 @@ public class CachedObjectContainer<K> {
     private K currentValue;
 
     public CachedObjectContainer(Func0<K> provider) {
-        this(provider, k -> true);
+        this(provider, new Func1<K, Boolean>() {
+            @Override
+            public Boolean call(K k) {
+                return true;
+            }
+        });
     }
 
     public CachedObjectContainer(Func0<K> provider, Func1<K, Boolean> checker) {

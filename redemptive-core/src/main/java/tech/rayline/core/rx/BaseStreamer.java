@@ -10,10 +10,20 @@ public abstract class BaseStreamer {
     protected final RxBukkitScheduler syncScheduler, asyncScheduler;
 
     public <T> Observable.Transformer<T, T> getSyncTransformer() {
-        return tObservable -> tObservable.subscribeOn(syncScheduler);
+        return new Observable.Transformer<T, T>() {
+            @Override
+            public Observable<T> call(Observable<T> tObservable) {
+                return tObservable.subscribeOn(syncScheduler);
+            }
+        };
     }
 
     public <T> Observable.Transformer<T, T> getAsyncTransformer() {
-        return tObservable -> tObservable.subscribeOn(asyncScheduler);
+        return new Observable.Transformer<T, T>() {
+            @Override
+            public Observable<T> call(Observable<T> tObservable) {
+                return tObservable.subscribeOn(asyncScheduler);
+            }
+        };
     }
 }

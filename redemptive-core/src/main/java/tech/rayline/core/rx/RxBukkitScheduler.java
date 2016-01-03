@@ -21,8 +21,13 @@ public final class RxBukkitScheduler extends Scheduler {
     private final JavaPlugin plugin;
     private final ConcurrencyMode concurrencyMode;
 
-    private BukkitTask actualSchedule(Action0 action, int ticksDelay) {
-        RunnableShorthand with = RunnableShorthand.forPlugin(plugin).with(action::call);
+    private BukkitTask actualSchedule(final Action0 action, int ticksDelay) {
+        RunnableShorthand with = RunnableShorthand.forPlugin(plugin).with(new Runnable() {
+            @Override
+            public void run() {
+                action.call();
+            }
+        });
         if (concurrencyMode == ConcurrencyMode.ASYNC)
             with.async();
         return with.later(ticksDelay);
@@ -45,9 +50,14 @@ public final class RxBukkitScheduler extends Scheduler {
 
         @Override
         public Subscription schedule(Action0 action, long delayTime, TimeUnit unit) {
-            BukkitTask bukkitTask = actualSchedule(action, (int) Math.round((double) unit.toMillis(delayTime) / 50D));
+            final BukkitTask bukkitTask = actualSchedule(action, (int) Math.round((double) unit.toMillis(delayTime) / 50D));
             ScheduledAction scheduledAction = new ScheduledAction(action, allSubscriptions);
-            scheduledAction.add(Subscriptions.create(bukkitTask::cancel));
+            scheduledAction.add(Subscriptions.create(new Action0() {
+                @Override
+                public void call() {
+                    bukkitTask.cancel();
+                }
+            }));
             return scheduledAction;
         }
     }
