@@ -1,5 +1,6 @@
 package tech.rayline.core.gui;
 
+import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableList;
 import org.bukkit.Bukkit;
 import org.bukkit.Sound;
@@ -168,7 +169,8 @@ public class InventoryGUI {
      * @param slot The slot location
      */
     public void setButton(InventoryGUIButton button, Integer slot) {
-        if (!getButtonAt(slot).equals(button))
+        InventoryGUIButton buttonAt = getButtonAt(slot);
+        if (buttonAt == null || !buttonAt.equals(button))
             button.onAdd();
 
         buttons.put(slot, button);
