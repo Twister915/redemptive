@@ -1,8 +1,10 @@
 package tech.rayline.core;
 
+import com.google.gson.JsonNull;
 import com.google.gson.JsonParseException;
 import com.google.gson.TypeAdapter;
 import com.google.gson.stream.JsonReader;
+import com.google.gson.stream.JsonToken;
 import com.google.gson.stream.JsonWriter;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
@@ -26,6 +28,10 @@ public final class ItemStackTypeAdapter extends TypeAdapter<ItemStack> {
 
     @Override
     public void write(JsonWriter out, ItemStack value) throws IOException {
+        if (value == null) {
+            out.nullValue();
+            return;
+        }
         out.beginObject();
         out.name(MATERIAL);
         out.value(value.getType().name());
@@ -76,6 +82,9 @@ public final class ItemStackTypeAdapter extends TypeAdapter<ItemStack> {
         String name = null;
         List<String> lore = new ArrayList<>();
         Map<Enchantment, Integer> enchantments = new HashMap<>();
+
+        if (in.peek() == JsonToken.NULL)
+            return null;
 
         in.beginObject();
 
