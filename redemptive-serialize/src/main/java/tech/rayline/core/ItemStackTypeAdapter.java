@@ -83,8 +83,10 @@ public final class ItemStackTypeAdapter extends TypeAdapter<ItemStack> {
         List<String> lore = new ArrayList<>();
         Map<Enchantment, Integer> enchantments = new HashMap<>();
 
-        if (in.peek() == JsonToken.NULL)
+        if (in.peek() == JsonToken.NULL) {
+            in.skipValue();
             return null;
+        }
 
         in.beginObject();
 
