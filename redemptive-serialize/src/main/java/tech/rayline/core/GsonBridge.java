@@ -21,7 +21,7 @@ public final class GsonBridge {
             .registerTypeAdapter(Location.class, new LocationTypeAdapter())
             .registerTypeAdapter(OfflinePlayer.class, new OfflinePlayerTypeAdapter())
             .registerTypeAdapter(World.class, new WorldTypeAdapter())
-            .registerTypeAdapter(ItemStack.class, new ItemStackTypeAdapter())
+            .registerTypeHierarchyAdapter(ItemStack.class, new ItemStackTypeAdapter())
             .create();
 
     @InjectionProvider
