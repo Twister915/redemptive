@@ -124,6 +124,8 @@ public final class ItemStackTypeAdapter extends TypeAdapter<ItemStack> {
             for (Map.Entry<Enchantment, Integer> enchantmentIntegerEntry : enchantments.entrySet())
                 stack.getEnchantments().put(enchantmentIntegerEntry.getKey(), enchantmentIntegerEntry.getValue());
 
+        in.endObject();
+
         return stack;
     }
 }
