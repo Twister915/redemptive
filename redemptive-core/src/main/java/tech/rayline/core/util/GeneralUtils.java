@@ -40,26 +40,29 @@ public final class GeneralUtils {
         return false;
     }
 
-    private void randomlySpawnFireworks(RedemptivePlugin plugin, World world, Point center, Point offset, int magnitude) {
-        Random random = new Random();
+    private void randomlySpawnFireworks(RedemptivePlugin plugin, final World world, final Point center, final Point offset, int magnitude) {
+        final Random random = new Random();
         for (int i = 0; i < random.nextInt(magnitude) + 2; i++)
-            Bukkit.getScheduler().runTaskLater(plugin, () -> {
-                Location fireworkOrig = new Point(
-                        center.getX() + (random.nextGaussian() * offset.getX()),
-                        center.getY() + (random.nextGaussian() * offset.getY()),
-                        center.getZ() + (random.nextGaussian() * offset.getZ()),
-                        0F, 0F).in(world);
-                Firework firework = (Firework) world.spawnEntity(fireworkOrig, EntityType.FIREWORK);
-                FireworkMeta fireworkMeta = firework.getFireworkMeta();
-                fireworkMeta.setPower(1);
-                FireworkEffect.Builder builder = FireworkEffect.builder();
-                builder.with(getRandom(FireworkEffect.Type.values()));
-                for (int m = 0; m < random.nextInt(3) + 2; m++)
-                    builder.withColor(getRandom(DyeColor.values()).getColor());
-                if (Math.random() < 0.5) builder.withFlicker();
-                if (Math.random() < 0.5) builder.withTrail();
-                fireworkMeta.addEffect(builder.build());
-                firework.setFireworkMeta(fireworkMeta);
+            Bukkit.getScheduler().runTaskLater(plugin, new Runnable() {
+                @Override
+                public void run() {
+                    Location fireworkOrig = new Point(
+                            center.getX() + (random.nextGaussian() * offset.getX()),
+                            center.getY() + (random.nextGaussian() * offset.getY()),
+                            center.getZ() + (random.nextGaussian() * offset.getZ()),
+                            0F, 0F).in(world);
+                    Firework firework = (Firework) world.spawnEntity(fireworkOrig, EntityType.FIREWORK);
+                    FireworkMeta fireworkMeta = firework.getFireworkMeta();
+                    fireworkMeta.setPower(1);
+                    FireworkEffect.Builder builder = FireworkEffect.builder();
+                    builder.with(getRandom(FireworkEffect.Type.values()));
+                    for (int m = 0; m < random.nextInt(3) + 2; m++)
+                        builder.withColor(getRandom(DyeColor.values()).getColor());
+                    if (Math.random() < 0.5) builder.withFlicker();
+                    if (Math.random() < 0.5) builder.withTrail();
+                    fireworkMeta.addEffect(builder.build());
+                    firework.setFireworkMeta(fireworkMeta);
+                }
             }, i * 3);
     }
 
