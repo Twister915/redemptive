@@ -40,7 +40,7 @@ public final class GeneralUtils {
         return false;
     }
 
-    private void randomlySpawnFireworks(RedemptivePlugin plugin, final World world, final Point center, final Point offset, int magnitude) {
+    private static void randomlySpawnFireworks(RedemptivePlugin plugin, final World world, final Point center, final Point offset, int magnitude) {
         final Random random = new Random();
         for (int i = 0; i < random.nextInt(magnitude) + 2; i++)
             Bukkit.getScheduler().runTaskLater(plugin, new Runnable() {
@@ -66,7 +66,7 @@ public final class GeneralUtils {
             }, i * 3);
     }
 
-    private <T> T getRandom(T[] ts) {
+    private static  <T> T getRandom(T[] ts) {
         return ts[((int) (Math.random() * ts.length))];
     }
 
