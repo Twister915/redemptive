@@ -26,4 +26,5 @@ public final class GsonBridge {
 
     @InjectionProvider
     public GsonBridge(RedemptivePlugin redemptivePlugin) {}
+    public GsonBridge() {}
 }

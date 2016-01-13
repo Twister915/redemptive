@@ -15,6 +15,8 @@ import rx.Observable;
 import tech.rayline.core.command.CommandMeta;
 import tech.rayline.core.command.RDCommand;
 import tech.rayline.core.inject.Injector;
+import tech.rayline.core.parse.ResourceFile;
+import tech.rayline.core.parse.ResourceFileGraph;
 import tech.rayline.core.rx.ConcurrencyMode;
 import tech.rayline.core.rx.EventStreamer;
 import tech.rayline.core.rx.PeriodicPlayerStreamer;
@@ -33,6 +35,9 @@ public abstract class RedemptivePlugin extends JavaPlugin {
     private RxBukkitScheduler syncScheduler, asyncScheduler;
     private EventStreamer eventStreamer;
     private PeriodicPlayerStreamer playerStreamer;
+    private ResourceFileGraph resourceFileGraph;
+
+    @ResourceFile(raw = true, filename = "formats.yml") private YAMLConfigurationFile formatsFile;
 
     @Getter(AccessLevel.NONE) private Object[] injected;
 
@@ -52,15 +57,19 @@ public abstract class RedemptivePlugin extends JavaPlugin {
             //inject
             injected = Injector.injectTo(this);
 
+            //resource file graph
+            resourceFileGraph = new ResourceFileGraph(this);
+            resourceFileGraph.hookToObject(this);
+            resourceFileGraph.writeDefaults();
+            resourceFileGraph.loadAll();
+
             //init files
             if (!getClass().isAnnotationPresent(NoConfig.class))
                 saveDefaultConfig();
 
-            if (getClass().isAnnotationPresent(UsesFormats.class)) {
-                YAMLConfigurationFile formatsFile = new YAMLConfigurationFile(this, getClass().getAnnotation(UsesFormats.class).file());
-                formatsFile.saveDefaultConfig();
+            if (getClass().isAnnotationPresent(UsesFormats.class))
                 formatter = new Formatter(formatsFile);
-            }
+
             else formatter = null;
 
             onModuleEnable();
@@ -74,10 +83,12 @@ public abstract class RedemptivePlugin extends JavaPlugin {
     @Override
     public final void onDisable() {
         try {
+            onModuleDisable();
+
             Injector.handleDisable(injected);
             injected = null;
 
-            onModuleDisable();
+            resourceFileGraph.saveAll();
         } catch (Throwable t) {
             getLogger().severe("Unable to properly disable this plugin!");
             t.printStackTrace();
@@ -86,6 +97,12 @@ public abstract class RedemptivePlugin extends JavaPlugin {
 
     public final Formatter.FormatBuilder formatAt(String key) {
         return getFormatter().begin(key);
+    }
+
+    public void loadResourcesFor(Object object) {
+        resourceFileGraph.hookToObject(object);
+        resourceFileGraph.writeDefaultsFor(object);
+        resourceFileGraph.loadFor(object);
     }
 
     //register commands
@@ -119,7 +136,11 @@ public abstract class RedemptivePlugin extends JavaPlugin {
         return command;
     }
 
-    public final void regsiterCommand(RDCommand... commands) {
+    @Deprecated public final void regsiterCommand(RDCommand... commands) {
+        for (RDCommand command : commands) registerCommand(command);
+    }
+
+    public final void registerCommand(RDCommand... commands) {
         for (RDCommand command : commands) registerCommand(command);
     }
 

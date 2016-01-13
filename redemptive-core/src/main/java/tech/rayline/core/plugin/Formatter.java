@@ -6,9 +6,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 public final class Formatter {
-    private String loadedPrefix;
-
     private final YAMLConfigurationFile formatsFile;
+    private String loadedPrefix;
 
     public Formatter(YAMLConfigurationFile formatsFile) {
         this.formatsFile = formatsFile;

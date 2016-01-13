@@ -8,5 +8,5 @@ import java.lang.annotation.Target;
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
 public @interface UsesFormats {
-    String file() default "formats.yml";
+    @Deprecated String file() default "formats.yml";
 }
