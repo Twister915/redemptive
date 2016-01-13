@@ -44,13 +44,13 @@ public abstract class RedemptivePlugin extends JavaPlugin {
     @Override
     public final void onEnable() {
         try {
-            //inject
-            injected = Injector.injectTo(this);
-
             //init rx
             syncScheduler = new RxBukkitScheduler(this, ConcurrencyMode.SYNC);
             asyncScheduler = new RxBukkitScheduler(this, ConcurrencyMode.ASYNC);
             eventStreamer = new EventStreamer(this, syncScheduler, asyncScheduler);
+
+            //inject
+            injected = Injector.injectTo(this);
 
             //init files
             if (!getClass().isAnnotationPresent(NoConfig.class))

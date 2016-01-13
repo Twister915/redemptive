@@ -65,6 +65,8 @@ public final class LocationTypeAdapter extends TypeAdapter<Location> {
                     break;
             }
         }
+        in.endObject();
+
         if (world == null || x == null || y == null || z == null || pitch == null || yaw == null)
             throw new JsonParseException("Could not read Location object, missing a critical value (expecting world, x, y, z, p, ya)");
 
