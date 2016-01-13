@@ -32,7 +32,8 @@ public final class ObservablePost<T> {
 
     @Synchronized
     public void complete() {
-        for (Subscriber<? super T> subscriber : subscribers) subscriber.onCompleted();
+        for (Subscriber<? super T> subscriber : subscribers)
+            subscriber.onCompleted();
         subscribers.clear();
     }
 
