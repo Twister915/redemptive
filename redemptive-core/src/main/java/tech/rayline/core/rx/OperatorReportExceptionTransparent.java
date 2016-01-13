@@ -23,7 +23,7 @@ public final class OperatorReportExceptionTransparent<T> implements Observable.O
     }
 
     @Override
-    public Subscriber<? super T> call(Subscriber<? super T> subscriber) {
+    public Subscriber<? super T> call(final Subscriber<? super T> subscriber) {
         return new Subscriber<T>() {
             @Override
             public void onCompleted() {
@@ -31,7 +31,7 @@ public final class OperatorReportExceptionTransparent<T> implements Observable.O
             }
 
             @Override
-            public void onError(Throwable e) {
+            public void onError(final Throwable e) {
                 try {
                     if (filter != null && filter.call(e))
                         handler.call(e);
@@ -43,7 +43,7 @@ public final class OperatorReportExceptionTransparent<T> implements Observable.O
             }
 
             @Override
-            public void onNext(T t) {
+            public void onNext(final T t) {
                 subscriber.onNext(t);
             }
         };
