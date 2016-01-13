@@ -27,26 +27,32 @@ public final class Injector {
             declaredField.setAccessible(true);
             //get the type so we can check that it can be injected by...
             Class<?> type = declaredField.getType();
-            //checking the annotation and...
-            if (!type.isAnnotationPresent(Injectable.class))
-                continue;
-            //searching for the constructor
-            for (Constructor<?> constructor : type.getDeclaredConstructors()) {
-                //which has the InjectionProvider annotation
-                if (!constructor.isAnnotationPresent(InjectionProvider.class))
-                    continue;
-                //and once we find it, we set it accessible and create a new instance
-                constructor.setAccessible(true);
-                Object o = constructor.newInstance(plugin);
-                //if successful (tons of exceptions being thrown up the stack above), we want to keep track of instance we just created
-                itemsCreated.add(o);
-                //and also set the field
-                declaredField.set(plugin, o);
-                continue FIELD_LOOP; //continue the outer loop to avoid the exception trap below
+            //now we should try-catch on this field so that we can inject other fields if this fails
+            try {
+                //checking the annotation and...
+                if (!type.isAnnotationPresent(Injectable.class))
+                    throw new IllegalStateException("The class you are attempting to inject is not injectable");
+                //searching for the constructor
+                for (Constructor<?> constructor : type.getDeclaredConstructors()) {
+                    //which has the InjectionProvider annotation
+                    if (!constructor.isAnnotationPresent(InjectionProvider.class))
+                        continue;
+                    //and once we find it, we set it accessible and create a new instance
+                    constructor.setAccessible(true);
+                    Object o = constructor.newInstance(plugin);
+                    //if successful (tons of exceptions being thrown up the stack above), we want to keep track of instance we just created
+                    itemsCreated.add(o);
+                    //and also set the field
+                    declaredField.set(plugin, o);
+                    continue FIELD_LOOP; //continue the outer loop to avoid the exception trap below
+                }
+                //if we never continued, we'll find ourselves here, meaning that we never found the constructor for this field's dependency
+                //throw an exception- we've failed
+                throw new IllegalStateException("Could not find a valid constructor in the class you're attempting to inject!");
+            } catch (Exception e) {
+                plugin.getLogger().severe("Could not inject " + type.getSimpleName() + " - " + declaredField.getName() + "!");
+                e.printStackTrace();
             }
-            //if we never continued, we'll find ourselves here, meaning that we never found the constructor for this field's dependency
-            //throw an exception- we've failed
-            throw new IllegalStateException("Could not find a valid constructor for field " + declaredField.getName() + " with type " + declaredField.getType().getSimpleName());
         }
 
         //grab the objects that we've gotten this time around
