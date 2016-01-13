@@ -52,6 +52,7 @@ public final class Injector {
             } catch (Exception e) {
                 plugin.getLogger().severe("Could not inject " + type.getSimpleName() + " - " + declaredField.getName() + "!");
                 e.printStackTrace();
+                throw new RuntimeException("Injection failed!");
             }
         }
 
