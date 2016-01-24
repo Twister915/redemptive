@@ -16,11 +16,35 @@ public final class Point {
     }
 
     public double distanceSquared(Point point) {
-        return Math.pow(x-point.getX(), 2) + Math.pow(y-point.getY(), 2) + Math.pow(z - point.getZ(), 2);
+        return distanceSquared(point.getX(), point.getY(), point.getZ());
+    }
+
+    public double distanceSquared(Location location) {
+        return distanceSquared(location.getX(), location.getY(), location.getZ());
+    }
+
+    public double distanceSquared(double x, double y, double z) {
+        return distanceSquared(x, z) + Math.pow(this.y - y, 2);
+    }
+
+    public double distanceSquared(double x, double z) {
+        return Math.pow(this.x - x, 2) + Math.pow(this.z - z, 2);
+    }
+
+    public double distance(double x, double y, double z) {
+        return Math.sqrt(distanceSquared(x, y, z));
+    }
+
+    public double distance(double x, double z) {
+        return Math.sqrt(distanceSquared(x, z));
     }
 
     public double distance(Point point) {
         return Math.sqrt(distanceSquared(point));
+    }
+
+    public double distance(Location location) {
+        return Math.sqrt(distanceSquared(location));
     }
 
     public static Point of(Location location) {

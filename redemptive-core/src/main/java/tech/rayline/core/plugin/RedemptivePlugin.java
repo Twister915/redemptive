@@ -15,6 +15,7 @@ import rx.Observable;
 import tech.rayline.core.command.CommandMeta;
 import tech.rayline.core.command.RDCommand;
 import tech.rayline.core.inject.Injector;
+import tech.rayline.core.parse.ReadOnlyResource;
 import tech.rayline.core.parse.ResourceFile;
 import tech.rayline.core.parse.ResourceFileGraph;
 import tech.rayline.core.rx.ConcurrencyMode;
@@ -37,7 +38,7 @@ public abstract class RedemptivePlugin extends JavaPlugin {
     private PeriodicPlayerStreamer playerStreamer;
     private ResourceFileGraph resourceFileGraph;
 
-    @ResourceFile(raw = true, filename = "formats.yml") private YAMLConfigurationFile formatsFile;
+    @ResourceFile(raw = true, filename = "formats.yml") @ReadOnlyResource private YAMLConfigurationFile formatsFile;
 
     @Getter(AccessLevel.NONE) private Object[] injected;
 
@@ -97,6 +98,14 @@ public abstract class RedemptivePlugin extends JavaPlugin {
 
     public final Formatter.FormatBuilder formatAt(String key) {
         return getFormatter().begin(key);
+    }
+
+    public void saveAll() {
+        resourceFileGraph.saveAll();
+    }
+
+    public void saveResourcesFor(Object object) {
+        resourceFileGraph.saveAll(object);
     }
 
     public void loadResourcesFor(Object object) {

@@ -27,7 +27,10 @@ public final class GsonResourceFileHook implements ResourceFileHook<JsonElement>
 
     @Override
     public void write(RedemptivePlugin plugin, Object o, File file) throws Exception {
-        gson.toJson(o, new FileWriter(file));
+        try (FileWriter fileWriter = new FileWriter(file)) {
+            String s = gson.toJson(o);
+            fileWriter.write(s);
+        }
     }
 
     @Override

@@ -1,6 +1,7 @@
 package tech.rayline.core.parse;
 
 import org.yaml.snakeyaml.Yaml;
+import org.yaml.snakeyaml.constructor.CustomClassLoaderConstructor;
 import tech.rayline.core.plugin.RedemptivePlugin;
 import tech.rayline.core.plugin.YAMLConfigurationFile;
 
@@ -9,7 +10,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 
 public final class SnakeYAMLResourceFileHook implements ResourceFileHook<YAMLConfigurationFile> {
-    private final Yaml snakeYaml = new Yaml();
+    private final Yaml snakeYaml = new Yaml(new CustomClassLoaderConstructor(getClass().getClassLoader()));
 
     @Override
     public <T> T read(RedemptivePlugin plugin, File file, Class<T> type) throws Exception {

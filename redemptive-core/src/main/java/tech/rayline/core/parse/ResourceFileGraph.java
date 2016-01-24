@@ -60,15 +60,21 @@ public final class ResourceFileGraph {
 
     private void writeDefault(RegisteredResourceFile resourceFile) {
         try {
+            if (!plugin.getDataFolder().exists() && !plugin.getDataFolder().mkdirs()) throw new IOException("Could not write default resource to data directory!");
             try (InputStream input = plugin.getResource(resourceFile.getAnnotation().filename())) {
+                if (input == null) return;
                 File file = resourceFile.getFile();
-                if (!file.exists() && !file.createNewFile())
+                if (file.exists())
+                    return;
+
+                if (!file.createNewFile())
                     throw new IOException("Could not create new file!");
 
                 try (OutputStream output = new FileOutputStream(file)) {
                     byte[] buffer = new byte[4096];
-                    while (input.read(buffer) != -1)
-                        output.write(buffer);
+                    int len;
+                    while ((len = input.read(buffer)) != -1)
+                        output.write(buffer, 0, len);
                 }
             }
         } catch (Exception e) {
@@ -78,10 +84,8 @@ public final class ResourceFileGraph {
     }
 
     public void loadAll() {
-        for (RegisteredResourceFile registeredResource : registeredResources) {
+        for (RegisteredResourceFile registeredResource : registeredResources)
             load(registeredResource);
-        }
-
     }
 
     private void load(RegisteredResourceFile registeredResource) {
@@ -90,6 +94,9 @@ public final class ResourceFileGraph {
             Object object = registeredResource.getInstanceBound();
             Field field = registeredResource.getField();
             File file = registeredResource.getFile();
+            if (!file.exists())
+                file.createNewFile();
+
             ResourceFileHook<?> resourceHook = registeredResource.getHook();
             Object read;
             if (annotation.raw()) {
@@ -98,6 +105,8 @@ public final class ResourceFileGraph {
                 read = resourceHook.read(plugin, file, field.getType());
             }
             field.setAccessible(true);
+            if (read == null && field.get(object) != null)
+                return;
             field.set(object, read);
         } catch (Exception e) {
             e.printStackTrace();
@@ -116,12 +125,20 @@ public final class ResourceFileGraph {
                 save(registeredResource);
                 return;
             }
+    }
 
+    public void saveAll(Object o) {
+        for (RegisteredResourceFile registeredResource : registeredResources)
+            if (registeredResource.getInstanceBound() == o)
+                save(registeredResource);
     }
 
     private void save(RegisteredResourceFile registeredResource) {
         try {
             Field field = registeredResource.getField();
+            field.setAccessible(true);
+            if (field.isAnnotationPresent(ReadOnlyResource.class))
+                return;
 
             Object value = field.get(registeredResource.getInstanceBound());
             ResourceFileHook<?> hook = registeredResource.getHook();
@@ -137,6 +154,7 @@ public final class ResourceFileGraph {
             Field field = registeredResource.getField();
             plugin.getLogger().severe("Could not write resource from " + field.getType().getSimpleName() + " field named " + field.getName());
         }
+        plugin.getLogger().info("Wrote resource " + registeredResource.getFile().getName() + " for " + registeredResource.getField().getName() +" on " + registeredResource.getInstanceBound().getClass().getSimpleName() + "!");
     }
 
     public void loadFor(Object object) {

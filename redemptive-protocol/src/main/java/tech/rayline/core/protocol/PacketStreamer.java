@@ -47,6 +47,15 @@ public final class PacketStreamer extends BaseStreamer {
                             Exceptions.throwOrReport(t, subscriber);
                         }
                     }
+
+                    @Override
+                    public void onPacketSending(PacketEvent event) {
+                        try {
+                            subscriber.onNext(event);
+                        } catch (Throwable t) {
+                            Exceptions.throwOrReport(t, subscriber);
+                        }
+                    }
                 };
                 //registers said adapter
                 ProtocolLibrary.getProtocolManager().addPacketListener(packetAdapter);

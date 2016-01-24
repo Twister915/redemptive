@@ -8,6 +8,7 @@ import tech.rayline.core.plugin.RedemptivePlugin;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.nio.file.Files;
 import java.util.Random;
 
@@ -38,6 +39,20 @@ public final class GeneralUtils {
             if (t1 == t || t1.equals(t)) return true;
         }
         return false;
+    }
+
+    public static <T> T[] grow(Class<T> type, T[] array) {
+        T[] ts = (T[]) Array.newInstance(type, array.length << 1);
+        System.arraycopy(array, 0, ts, 0, array.length);
+        return ts;
+    }
+
+    public static <T> T[] trim(Class<T> type, T[] array) {
+        int len = 0;
+        while (array[len] != null && len < array.length) len++;
+        T[] ts = (T[]) Array.newInstance(type, len);
+        System.arraycopy(array, 0, ts, 0, len);
+        return ts;
     }
 
     public static void randomlySpawnFireworks(RedemptivePlugin plugin, final World world, final Point center, final Point offset, int magnitude) {

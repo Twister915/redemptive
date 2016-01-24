@@ -2,7 +2,6 @@ package tech.rayline.core.rx;
 
 import lombok.Synchronized;
 import rx.Observable;
-import rx.Observer;
 import rx.Subscriber;
 import rx.exceptions.Exceptions;
 import rx.functions.Action0;
@@ -10,7 +9,6 @@ import rx.subscriptions.Subscriptions;
 
 import java.util.HashSet;
 import java.util.Set;
-import java.util.function.Consumer;
 
 /**
  * This represents something that can churn out {@link rx.Observable}s and lets you post objects to the subscribers

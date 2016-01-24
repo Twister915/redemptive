@@ -208,6 +208,7 @@ public class InventoryGUI {
         InventoryGUIButton buttonAt = getButtonAt(slot);
         if (buttonAt == null || !buttonAt.equals(button))
             button.onAdd();
+        clearButton(slot);
 
         buttons.put(slot, button);
         markForUpdate(slot);
@@ -332,7 +333,7 @@ public class InventoryGUI {
     }
 
     //removes players from the observable set now that they've closed the inventory
-    private void inventoryClosed(Player player) {
+    protected void inventoryClosed(Player player) {
         observers.remove(player);
     }
 

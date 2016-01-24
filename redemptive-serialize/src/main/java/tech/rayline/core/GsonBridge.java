@@ -18,9 +18,9 @@ import java.lang.reflect.Modifier;
 public final class GsonBridge {
     private final Gson gson = new GsonBuilder()
             .excludeFieldsWithModifiers(Modifier.TRANSIENT)
-            .registerTypeAdapter(Location.class, new LocationTypeAdapter())
-            .registerTypeAdapter(OfflinePlayer.class, new OfflinePlayerTypeAdapter())
-            .registerTypeAdapter(World.class, new WorldTypeAdapter())
+            .registerTypeHierarchyAdapter(Location.class, new LocationTypeAdapter())
+            .registerTypeHierarchyAdapter(OfflinePlayer.class, new OfflinePlayerTypeAdapter())
+            .registerTypeHierarchyAdapter(World.class, new WorldTypeAdapter())
             .registerTypeHierarchyAdapter(ItemStack.class, new ItemStackTypeAdapter())
             .create();
 
