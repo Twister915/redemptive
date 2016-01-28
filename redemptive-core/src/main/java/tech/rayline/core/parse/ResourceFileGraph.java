@@ -13,13 +13,13 @@ import java.util.Set;
 public final class ResourceFileGraph {
     private final RedemptivePlugin plugin;
     private final Set<RegisteredResourceFile> registeredResources = new HashSet<>();
-    private final Map<Class<? extends ResourceFileHook<?>>, ResourceFileHook<?>> fileHooks = new HashMap<>();
+    private final Map<Class<? extends ResourceFileHook>, ResourceFileHook> fileHooks = new HashMap<>();
 
     public ResourceFileGraph(RedemptivePlugin plugin) {
         this.plugin = plugin;
     }
 
-    public <T extends ResourceFileHook<?>> T getResourceHook(Class<T> clazz) throws Exception {
+    public <T extends ResourceFileHook> T getResourceHook(Class<T> clazz) throws Exception {
         ResourceFileHook<?> resourceFileHook = fileHooks.get(clazz);
         if (resourceFileHook == null || !(resourceFileHook.getClass().equals(clazz))) {
             resourceFileHook = clazz.newInstance();

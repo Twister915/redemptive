@@ -215,7 +215,7 @@ public abstract class RDCommand implements CommandExecutor, TabCompleter {
         return null;
     }
 
-    public final List<String> getSubCommandsForPartial(String s) {
+    public List<String> getSubCommandsForPartial(String s) {
         List<String> commands = new ArrayList<>(); //Create a place to hold our possible commands
         RDCommand subCommand;
         if ((subCommand = getSubCommandFor(s)) != null) { //Check if we can get an exact sub-command

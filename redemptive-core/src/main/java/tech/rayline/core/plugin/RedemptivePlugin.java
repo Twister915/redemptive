@@ -116,32 +116,37 @@ public abstract class RedemptivePlugin extends JavaPlugin {
 
     //register commands
     public final <T extends RDCommand> T registerCommand(T command) {
-        PluginCommand command1;
-        try {
-            Constructor commandConstructor = PluginCommand.class.getDeclaredConstructor(String.class, Plugin.class);
-            commandConstructor.setAccessible(true);
-            command1 = (PluginCommand) commandConstructor.newInstance(command.getName(), this);
-        } catch (Exception ex) {
-            throw new IllegalStateException("Could not register command " + command.getName());
+        PluginCommand pluginCommand = getCommand(command.getName());
+        if (pluginCommand == null) {
+            try {
+                Constructor commandConstructor = PluginCommand.class.getDeclaredConstructor(String.class, Plugin.class);
+                commandConstructor.setAccessible(true);
+                pluginCommand = (PluginCommand) commandConstructor.newInstance(command.getName(), this);
+            } catch (Exception ex) {
+                throw new IllegalStateException("Could not register command " + command.getName());
+            }
+            CommandMap commandMap;
+            try {
+                PluginManager pluginManager = Bukkit.getPluginManager();
+                Field commandMapField = pluginManager.getClass().getDeclaredField("commandMap");
+                commandMapField.setAccessible(true);
+                commandMap = (CommandMap) commandMapField.get(pluginManager);
+            } catch (Exception ex) {
+                throw new IllegalStateException("Could not register command " + command.getName());
+            }
+            commandMap.register(this.getDescription().getName(), pluginCommand); //Register it with Bukkit
         }
-        command1.setExecutor(command); //Set the exectuor
-        command1.setTabCompleter(command); //Tab completer
+        pluginCommand.setExecutor(command); //Set the exectuor
+        pluginCommand.setTabCompleter(command); //Tab completer
         CommandMeta annotation = command.getClass().getAnnotation(CommandMeta.class); //Get the commandMeta
-        if (annotation != null){
-            command1.setAliases(Arrays.asList(annotation.aliases()));
-            command1.setDescription(annotation.description());
-            command1.setUsage(annotation.usage());
+        if (annotation != null) {
+            pluginCommand.setAliases(Arrays.asList(annotation.aliases()));
+            pluginCommand.setDescription(annotation.description());
+            pluginCommand.setUsage(annotation.usage());
         }
-        CommandMap commandMap;
-        try {
-            PluginManager pluginManager = Bukkit.getPluginManager();
-            Field commandMapField = pluginManager.getClass().getDeclaredField("commandMap");
-            commandMapField.setAccessible(true);
-            commandMap = (CommandMap) commandMapField.get(pluginManager);
-        } catch (Exception ex) {
-            throw new IllegalStateException("Could not register command " + command.getName());
-        }
-        commandMap.register(this.getDescription().getName(), command1); //Register it with Bukkit
+
+        getLogger().info("Registered command /" + command.getName());
+
         return command;
     }
 
