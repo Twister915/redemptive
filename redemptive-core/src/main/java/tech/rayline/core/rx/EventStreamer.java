@@ -19,16 +19,31 @@ public final class EventStreamer extends BaseStreamer {
 
     @SafeVarargs
     public final <T extends Event> Observable<T> observeEvent(Class<? extends T>... events) {
-        return observeEvent(EventPriority.NORMAL, events);
+        return observeEventRaw(events).compose(this.<T>getSyncTransformer());
     }
 
     @SafeVarargs
     public final <T extends Event> Observable<T> observeEvent(EventPriority priority, Class<? extends T>... events) {
-        return observeEvent(priority, false, events);
+        return observeEventRaw(priority, events).compose(this.<T>getSyncTransformer());
     }
 
     @SafeVarargs
-    public final <T extends Event> Observable<T> observeEvent(final EventPriority priority, final boolean ignoreCancelled, final Class<? extends T>... events) {
+    public final <T extends Event> Observable<T> observeEvent(EventPriority priority, boolean ignoreCancelled, Class<? extends T>... events) {
+        return observeEventRaw(priority, ignoreCancelled, events).compose(this.<T>getSyncTransformer());
+    }
+
+    @SafeVarargs
+    public final <T extends Event> Observable<T> observeEventRaw(Class<? extends T>... events) {
+        return observeEventRaw(EventPriority.NORMAL, events);
+    }
+
+    @SafeVarargs
+    public final <T extends Event> Observable<T> observeEventRaw(EventPriority priority, Class<? extends T>... events) {
+        return observeEventRaw(priority, false, events);
+    }
+
+    @SafeVarargs
+    public final <T extends Event> Observable<T> observeEventRaw(final EventPriority priority, final boolean ignoreCancelled, final Class<? extends T>... events) {
         //creates an observer which...
         return Observable.create(new Observable.OnSubscribe<T>() {
             @Override
@@ -90,6 +105,6 @@ public final class EventStreamer extends BaseStreamer {
                     }
                 }, plugin, false);
             }
-        }).compose(this.<T>getSyncTransformer());
+        });
     }
 }

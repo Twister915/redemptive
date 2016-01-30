@@ -9,12 +9,13 @@ import org.bukkit.World;
 import org.bukkit.inventory.ItemStack;
 import tech.rayline.core.inject.Injectable;
 import tech.rayline.core.inject.InjectionProvider;
+import tech.rayline.core.library.MavenLibrary;
 import tech.rayline.core.plugin.RedemptivePlugin;
 
 import java.lang.reflect.Modifier;
 
 @Getter
-@Injectable
+@Injectable(libraries = {@MavenLibrary("com.google.code.gson:gson:2.5")})
 public final class GsonBridge {
     private final Gson gson = new GsonBuilder()
             .excludeFieldsWithModifiers(Modifier.TRANSIENT)

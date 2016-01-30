@@ -5,9 +5,11 @@ import org.mongodb.morphia.mapping.Mapper;
 import org.mongodb.morphia.mapping.MapperOptions;
 import tech.rayline.core.inject.Injectable;
 import tech.rayline.core.inject.InjectionProvider;
+import tech.rayline.core.library.MavenLibraries;
+import tech.rayline.core.library.MavenLibrary;
 import tech.rayline.core.plugin.RedemptivePlugin;
 
-@Injectable
+@Injectable(libraries = {@MavenLibrary("org.mongodb.morphia:morphia:1.0.1"), @MavenLibrary("org.mongodb:mongo-java-driver:3.0.2")})
 public final class MorphiaHelper {
     private final RedemptivePlugin plugin;
 

@@ -15,6 +15,9 @@ import rx.Observable;
 import tech.rayline.core.command.CommandMeta;
 import tech.rayline.core.command.RDCommand;
 import tech.rayline.core.inject.Injector;
+import tech.rayline.core.library.LibraryHandler;
+import tech.rayline.core.library.MavenLibraries;
+import tech.rayline.core.library.MavenLibrary;
 import tech.rayline.core.parse.ReadOnlyResource;
 import tech.rayline.core.parse.ResourceFile;
 import tech.rayline.core.parse.ResourceFileGraph;
@@ -31,6 +34,7 @@ import java.util.Arrays;
  * Represents a {@link org.bukkit.plugin.Plugin} extension using all that redemptive has to offer
  */
 @Getter
+@MavenLibraries({@MavenLibrary("io.reactivex:rxjava:1.0.16")})
 public abstract class RedemptivePlugin extends JavaPlugin {
     private Formatter formatter;
     private RxBukkitScheduler syncScheduler, asyncScheduler;
@@ -45,6 +49,12 @@ public abstract class RedemptivePlugin extends JavaPlugin {
     //"abstract" methods
     protected void onModuleEnable() throws Exception {}
     protected void onModuleDisable() throws Exception {}
+
+    @Override
+    public  void onLoad() {
+        //get libraries, first and foremost
+        LibraryHandler.loadLibraries(this);
+    }
 
     //plugin stuff
     @Override
@@ -158,15 +168,29 @@ public abstract class RedemptivePlugin extends JavaPlugin {
         for (RDCommand command : commands) registerCommand(command);
     }
 
-    //listeners
     @SafeVarargs
     public final <T extends Event> Observable<T> observeEvent(Class<? extends T>... events) {
         return eventStreamer.observeEvent(events);
     }
 
     @SafeVarargs
+    public final <T extends Event> Observable<T> observeEventRaw(EventPriority priority, Class<? extends T>... events) {
+        return eventStreamer.observeEventRaw(priority, events);
+    }
+
+    @SafeVarargs
     public final <T extends Event> Observable<T> observeEvent(EventPriority priority, Class<? extends T>... events) {
         return eventStreamer.observeEvent(priority, events);
+    }
+
+    @SafeVarargs
+    public final <T extends Event> Observable<T> observeEventRaw(Class<? extends T>... events) {
+        return eventStreamer.observeEventRaw(events);
+    }
+
+    @SafeVarargs
+    public final <T extends Event> Observable<T> observeEventRaw(EventPriority priority, boolean ignoreCancelled, Class<? extends T>... events) {
+        return eventStreamer.observeEventRaw(priority, ignoreCancelled, events);
     }
 
     @SafeVarargs
