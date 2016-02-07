@@ -4,6 +4,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import tech.rayline.core.plugin.RedemptivePlugin;
 
 import java.io.*;
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -27,6 +28,12 @@ public final class ResourceFileGraph {
         }
         //noinspection unchecked
         return (T) resourceFileHook;
+    }
+
+    public void addObject(Object object) {
+        hookToObject(object);
+        writeDefaultsFor(object);
+        loadFor(object);
     }
 
     public void hookToObject(Object object) {
@@ -105,8 +112,13 @@ public final class ResourceFileGraph {
                 read = resourceHook.read(plugin, file, field.getType());
             }
             field.setAccessible(true);
-            if (read == null && field.get(object) != null)
-                return;
+            if (read == null && field.get(object) != null) {
+                try {
+                    read = field.getType().getConstructor().newInstance();
+                } catch (Exception e) {
+                    return;
+                }
+            }
             field.set(object, read);
         } catch (Exception e) {
             e.printStackTrace();

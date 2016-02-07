@@ -65,14 +65,14 @@ public abstract class RedemptivePlugin extends JavaPlugin {
             asyncScheduler = new RxBukkitScheduler(this, ConcurrencyMode.ASYNC);
             eventStreamer = new EventStreamer(this, syncScheduler, asyncScheduler);
 
-            //inject
-            injected = Injector.injectTo(this);
-
             //resource file graph
             resourceFileGraph = new ResourceFileGraph(this);
             resourceFileGraph.hookToObject(this);
             resourceFileGraph.writeDefaults();
             resourceFileGraph.loadAll();
+
+            //inject
+            injected = Injector.injectTo(this);
 
             //init files
             if (!getClass().isAnnotationPresent(NoConfig.class))
