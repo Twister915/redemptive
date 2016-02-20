@@ -40,6 +40,11 @@ public final class Formatter {
             return this;
         }
 
+        public FormatBuilder with(String key, Object value) {
+            modifiers.put(key, value.toString());
+            return this;
+        }
+
         public FormatBuilder withPrefix(boolean p) {
             prefix = p;
             return this;
@@ -60,6 +65,11 @@ public final class Formatter {
             }
             if (prefix && loadedPrefix != null) return loadedPrefix + s;
             return s;
+        }
+
+        @Override
+        public String toString() {
+            return get();
         }
     }
 }

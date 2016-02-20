@@ -9,6 +9,9 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.*;
 import org.bukkit.entity.Player;
+import tech.rayline.core.plugin.*;
+import tech.rayline.core.plugin.Formatter;
+import tech.rayline.core.util.RunnableShorthand;
 
 import java.util.*;
 
@@ -21,14 +24,10 @@ public abstract class RDCommand implements CommandExecutor, TabCompleter {
     /**
      * Holds the name of this command.
      */
-    @Getter
-    private final String name;
-
-    @Setter(AccessLevel.PROTECTED) @Getter
-    private RDCommand superCommand = null;
-
-    @Getter
-    private CommandMeta meta = getClass().isAnnotationPresent(CommandMeta.class) ? getClass().getAnnotation(CommandMeta.class) : null;
+    @Getter private final String name;
+    @Setter(AccessLevel.PROTECTED) @Getter private RDCommand superCommand = null;
+    @Getter private CommandMeta meta = getClass().isAnnotationPresent(CommandMeta.class) ? getClass().getAnnotation(CommandMeta.class) : null;
+    @Getter @Setter private RedemptivePlugin plugin;
 
     /**
      * Main constructor without sub-commands.
@@ -98,7 +97,7 @@ public abstract class RDCommand implements CommandExecutor, TabCompleter {
         });
     }
 
-    public final boolean onCommand(CommandSender sender, Command command, String s, String[] args) {
+    public final boolean onCommand(final CommandSender sender, Command command, String s, final String[] args) {
         //Handling commands can be done by the logic below, and all errors should be thrown using an exception.
         //If you wish to override the behavior of displaying that error to the player, it is discouraged to do that in
         //your command logic, and you are encouraged to use the provided method handleCommandException.
@@ -136,13 +135,21 @@ public abstract class RDCommand implements CommandExecutor, TabCompleter {
             }
 
             //Now that we've made it past the sub commands and permissions, STEP TWO: actually handle the command and it's args.
-            try {
-                if (sender instanceof Player) handleCommand(((Player) sender), args);
-                else if (sender instanceof ConsoleCommandSender) handleCommand((ConsoleCommandSender)sender, args);
-                else if (sender instanceof BlockCommandSender)  handleCommand((BlockCommandSender)sender, args);
-            } catch (EmptyHandlerException e) {
-                handleCommandUnspecific(sender, args); //We don't catch this because we would catch it and then immediately re-throw it so it could be caught by the below catch block (which handles the exception).
-            }
+            if (getClass().isAnnotationPresent(AsyncCommand.class))
+                RunnableShorthand.forPlugin(plugin).async().with(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            actualDispatch(sender, args);
+                        } catch (CommandException e) {
+                            handleCommandException(e, args, sender);
+                        } catch (Exception e) {
+                            handleCommandException(new UnhandledCommandExceptionException(e), args, sender);
+                        }
+                    }
+                }).go();
+            else
+                actualDispatch(sender, args);
         } //STEP THREE: Check for any command exceptions (intended) and any exceptions thrown in general and dispatch a call for an unhandled error to the handler.
         catch (CommandException ex) {
             handleCommandException(ex, args, sender);
@@ -151,6 +158,16 @@ public abstract class RDCommand implements CommandExecutor, TabCompleter {
         }
         //STEP FOUR: Tell Bukkit we're done!
         return true;
+    }
+
+    private void actualDispatch(CommandSender sender, String[] args) throws CommandException {
+        try {
+            if (sender instanceof Player) handleCommand(((Player) sender), args);
+            else if (sender instanceof ConsoleCommandSender) handleCommand((ConsoleCommandSender)sender, args);
+            else if (sender instanceof BlockCommandSender)  handleCommand((BlockCommandSender)sender, args);
+        } catch (EmptyHandlerException e) {
+            handleCommandUnspecific(sender, args);
+        }
     }
 
     public final List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
@@ -228,6 +245,12 @@ public abstract class RDCommand implements CommandExecutor, TabCompleter {
                 commands.add(s1); //We found one that starts with the argument.
         }
         return commands;
+    }
+
+    public Formatter.FormatBuilder formatAt(String key) {
+        if (getPlugin() == null)
+            throw new IllegalStateException("This command has been registered by multiple plugins, or (likely) none at all!");
+        return getPlugin().formatAt(key);
     }
 
     //Default behavior is to do nothing, these methods can be overridden by the sub-class.

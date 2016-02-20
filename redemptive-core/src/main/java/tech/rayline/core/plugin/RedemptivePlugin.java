@@ -154,7 +154,10 @@ public abstract class RedemptivePlugin extends JavaPlugin {
             pluginCommand.setDescription(annotation.description());
             pluginCommand.setUsage(annotation.usage());
         }
-
+        if (command.getPlugin() != null)
+            command.setPlugin(this);
+        else
+            command.setPlugin(null);
         getLogger().info("Registered command /" + command.getName());
 
         return command;
