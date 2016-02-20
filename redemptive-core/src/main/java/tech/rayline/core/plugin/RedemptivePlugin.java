@@ -144,16 +144,17 @@ public abstract class RedemptivePlugin extends JavaPlugin {
             } catch (Exception ex) {
                 throw new IllegalStateException("Could not register command " + command.getName());
             }
+            CommandMeta annotation = command.getClass().getAnnotation(CommandMeta.class); //Get the commandMeta
+            if (annotation != null) {
+                pluginCommand.setAliases(Arrays.asList(annotation.aliases()));
+                pluginCommand.setDescription(annotation.description());
+                pluginCommand.setUsage(annotation.usage());
+            }
             commandMap.register(this.getDescription().getName(), pluginCommand); //Register it with Bukkit
         }
         pluginCommand.setExecutor(command); //Set the exectuor
         pluginCommand.setTabCompleter(command); //Tab completer
-        CommandMeta annotation = command.getClass().getAnnotation(CommandMeta.class); //Get the commandMeta
-        if (annotation != null) {
-            pluginCommand.setAliases(Arrays.asList(annotation.aliases()));
-            pluginCommand.setDescription(annotation.description());
-            pluginCommand.setUsage(annotation.usage());
-        }
+
         if (command.getPlugin() != null)
             command.setPlugin(this);
         else
