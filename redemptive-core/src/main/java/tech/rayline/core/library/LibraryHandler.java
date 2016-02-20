@@ -7,6 +7,7 @@ import tech.rayline.core.inject.Injectable;
 import tech.rayline.core.plugin.RedemptivePlugin;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.reflect.Field;
@@ -19,6 +20,7 @@ import java.nio.file.StandardCopyOption;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.zip.ZipInputStream;
 
 public final class LibraryHandler {
     public static void loadLibraries(RedemptivePlugin plugin) {
@@ -90,27 +92,30 @@ public final class LibraryHandler {
         return getLibrariesRecurse(plugin, new HashSet<MavenLibrary>());
     }
 
-    private static Set<MavenLibrary> getLibrariesRecurse(Class<?> pluginClass, Set<MavenLibrary> libraries) {
-        MavenLibraries annotation = pluginClass.getAnnotation(MavenLibraries.class);
+    private static Set<MavenLibrary> getLibrariesRecurse(Class<?> targetClass, Set<MavenLibrary> libraries) {
+        if (targetClass.isAnnotationPresent(IgnoreLibraries.class))
+            return Collections.emptySet();
+
+        MavenLibraries annotation = targetClass.getAnnotation(MavenLibraries.class);
         //actual annotations
         if (annotation != null)
             Collections.addAll(libraries, annotation.value());
 
         try {
-            for (Field field : pluginClass.getDeclaredFields()) {
+            for (Field field : targetClass.getDeclaredFields()) {
                 if (!field.isAnnotationPresent(Inject.class)) continue;
                 Injectable injectable = field.getType().getAnnotation(Injectable.class);
                 if (injectable == null) continue;
                 Collections.addAll(libraries, injectable.libraries());
             }
         } catch (Throwable t) {
-            System.err.println("WARNING: Could not read fields for " + pluginClass.getSimpleName());
+            System.err.println("WARNING: Could not read fields for " + targetClass.getSimpleName());
         }
 
-        pluginClass = pluginClass.getSuperclass();
-        if (pluginClass == Object.class || pluginClass == JavaPlugin.class)
+        targetClass = targetClass.getSuperclass();
+        if (targetClass == Object.class || targetClass == JavaPlugin.class)
             return libraries;
-        return getLibrariesRecurse(pluginClass, libraries);
+        return getLibrariesRecurse(targetClass, libraries);
     }
 
     private static void addFile(File f) throws IOException {
@@ -118,6 +123,7 @@ public final class LibraryHandler {
     }
 
     private static void addURL(URL u) throws IOException {
+        //check if this is already loaded
         URLClassLoader sysloader = (URLClassLoader)ClassLoader.getSystemClassLoader();
         Class<URLClassLoader> sysclass = URLClassLoader.class;
         try {
