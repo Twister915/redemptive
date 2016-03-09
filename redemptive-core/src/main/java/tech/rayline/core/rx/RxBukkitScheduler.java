@@ -50,6 +50,11 @@ public final class RxBukkitScheduler extends Scheduler {
 
         @Override
         public Subscription schedule(Action0 action, long delayTime, TimeUnit unit) {
+            if (unit.toMillis(delayTime) == 0 && concurrencyMode == ConcurrencyMode.SYNC) {
+                action.call();
+                return Subscriptions.unsubscribed();
+            }
+
             final BukkitTask bukkitTask = actualSchedule(action, (int) Math.round((double) unit.toMillis(delayTime) / 50D));
             ScheduledAction scheduledAction = new ScheduledAction(action, allSubscriptions);
             scheduledAction.add(Subscriptions.create(new Action0() {
