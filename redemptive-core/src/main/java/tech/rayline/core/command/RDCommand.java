@@ -9,6 +9,11 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.*;
 import org.bukkit.entity.Player;
+import org.bukkit.event.player.AsyncPlayerChatEvent;
+import org.bukkit.event.server.ServerCommandEvent;
+import rx.*;
+import rx.Observable;
+import rx.functions.Func1;
 import tech.rayline.core.plugin.*;
 import tech.rayline.core.plugin.Formatter;
 import tech.rayline.core.util.RunnableShorthand;
@@ -251,6 +256,47 @@ public abstract class RDCommand implements CommandExecutor, TabCompleter {
         if (getPlugin() == null)
             throw new IllegalStateException("This command has been registered by multiple plugins, or (likely) none at all!");
         return getPlugin().formatAt(key);
+    }
+
+    protected void messagePrompt(CommandSender sender, String action) {
+        sender.sendMessage(formatAt("setup.prompt").withModifier("action", action).get());
+    }
+
+    protected final Single<String> promptPlayer(Player player, String s) {
+        return promptSender(player, s);
+    }
+
+    protected final Single<String> promptSender(final CommandSender sender, String s) {
+        messagePrompt(sender, s);
+        Observable<String> observable;
+        if (sender instanceof Player) {
+            observable = getPlugin()
+                    .observeEvent(AsyncPlayerChatEvent.class)
+                    .filter(new Func1<AsyncPlayerChatEvent, Boolean>() {
+                        @Override
+                        public Boolean call(AsyncPlayerChatEvent event) {
+                            return event.getPlayer().equals(sender);
+                        }
+                    })
+                    .map(new Func1<AsyncPlayerChatEvent, String>() {
+                        @Override
+                        public String call(AsyncPlayerChatEvent event) {
+                            event.setCancelled(true);
+                            return event.getMessage();
+                        }
+                    });
+        } else if (sender instanceof ConsoleCommandSender) {
+            observable = getPlugin().observeEvent(ServerCommandEvent.class)
+                    .map(new Func1<ServerCommandEvent, String>() {
+                        @Override
+                        public String call(ServerCommandEvent event) {
+                            event.setCancelled(true);
+                            return event.getCommand();
+                        }
+                    });
+        } else throw new IllegalArgumentException("You cannot perform this command!");
+
+        return observable.take(1).toSingle();
     }
 
     //Default behavior is to do nothing, these methods can be overridden by the sub-class.
