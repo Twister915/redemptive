@@ -157,7 +157,7 @@ public abstract class RedemptivePlugin extends JavaPlugin {
         pluginCommand.setExecutor(command); //Set the exectuor
         pluginCommand.setTabCompleter(command); //Tab completer
 
-        if (command.getPlugin() != null)
+        if (command.getPlugin() == null)
             command.setPlugin(this);
         else
             command.setPlugin(null);

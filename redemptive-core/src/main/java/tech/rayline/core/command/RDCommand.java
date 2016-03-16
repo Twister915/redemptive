@@ -32,7 +32,7 @@ public abstract class RDCommand implements CommandExecutor, TabCompleter {
     @Getter private final String name;
     @Setter(AccessLevel.PROTECTED) @Getter private RDCommand superCommand = null;
     @Getter private CommandMeta meta = getClass().isAnnotationPresent(CommandMeta.class) ? getClass().getAnnotation(CommandMeta.class) : null;
-    @Getter @Setter private RedemptivePlugin plugin;
+    @Setter private RedemptivePlugin plugin;
 
     /**
      * Main constructor without sub-commands.
@@ -256,6 +256,12 @@ public abstract class RDCommand implements CommandExecutor, TabCompleter {
         if (getPlugin() == null)
             throw new IllegalStateException("This command has been registered by multiple plugins, or (likely) none at all!");
         return getPlugin().formatAt(key);
+    }
+
+    public RedemptivePlugin getPlugin() {
+        if (getSuperCommand() != null)
+            return getSuperCommand().getPlugin();
+        return plugin;
     }
 
     protected void messagePrompt(CommandSender sender, String action) {
