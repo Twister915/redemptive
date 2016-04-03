@@ -88,8 +88,8 @@ public abstract class RedemptivePlugin extends JavaPlugin {
             onModuleEnable();
         } catch (Throwable t) {
             getLogger().severe("Unable to properly enable this plugin!");
-            Bukkit.getPluginManager().disablePlugin(this);
             t.printStackTrace();
+            Bukkit.getPluginManager().disablePlugin(this);
         }
     }
 
