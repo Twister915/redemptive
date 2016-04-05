@@ -132,9 +132,9 @@ public final class ItemStackTypeAdapter extends TypeAdapter<ItemStack> {
             stack.setItemMeta(itemMeta);
         }
         if (!enchantments.isEmpty())
-            for (Map.Entry<Enchantment, Integer> enchantmentIntegerEntry : enchantments.entrySet())
-                stack.getEnchantments().put(enchantmentIntegerEntry.getKey(), enchantmentIntegerEntry.getValue());
-
+            for (Map.Entry<Enchantment, Integer> enchantmentIntegerEntry : enchantments.entrySet()) {
+                stack.addUnsafeEnchantment(enchantmentIntegerEntry.getKey(), enchantmentIntegerEntry.getValue());
+            }
         in.endObject();
 
         return stack;

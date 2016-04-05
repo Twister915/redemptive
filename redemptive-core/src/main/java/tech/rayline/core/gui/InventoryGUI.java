@@ -36,7 +36,7 @@ public class InventoryGUI {
     /**
      * A collection of all the players who currently have the inventory GUI open
      */
-    private final Set<Player> observers = new HashSet<>();
+    private final Set<UUID> observers = new HashSet<>();
     /**
      * All the current button mappings for different slots
      */
@@ -98,7 +98,7 @@ public class InventoryGUI {
                     @Override
                     public Boolean call(InventoryClickEvent event) {
                         //noinspection SuspiciousMethodCalls
-                        return event.getInventory().equals(bukkitInventory) && observers.contains(event.getWhoClicked());
+                        return event.getInventory().equals(bukkitInventory) && observers.contains(event.getWhoClicked().getUniqueId());
                     }
                 })
                 .subscribe(new Action1<InventoryClickEvent>() {
@@ -106,7 +106,7 @@ public class InventoryGUI {
                     public void call(InventoryClickEvent event) {
                         event.setCancelled(true);
                         try {
-                            InventoryGUIButton buttonAt = InventoryGUI.this.getButtonAt(event.getSlot());
+                            InventoryGUIButton buttonAt = getButtonAt(event.getRawSlot());
                             if (buttonAt == null)
                                 return;
 
@@ -176,15 +176,15 @@ public class InventoryGUI {
         });
     }
 
-
-
     /**
      * This will force the inventory to fall out of scope by clearing and un-subscribing various things
      */
+
+
     public void invalidate() {
         mainSubscription.unsubscribe();
-        for (Player observer : observers)
-            observer.closeInventory();
+        for (UUID observer : observers)
+            Bukkit.getPlayer(observer).closeInventory();
         observers.clear();
         touchedSlots.clear();
         for (Integer integer : buttons.keySet())
@@ -261,8 +261,8 @@ public class InventoryGUI {
             bukkitInventory.setItem(touchedSlot, itemStack);
         }
 
-        for (Player observer : observers)
-            observer.updateInventory();
+        for (UUID observer : observers)
+            Bukkit.getPlayer(observer).updateInventory();
         touchedSlots.clear();
     }
 
@@ -274,7 +274,7 @@ public class InventoryGUI {
         if (mainSubscription.isUnsubscribed())
             throw new IllegalStateException("You cannot use this inventory anymore! You have invalidated it!");
 
-        observers.add(player);
+        observers.add(player.getUniqueId());
         //listens to the player quit event and the inventory close event
         Observable.merge(
                 plugin.observeEvent(PlayerQuitEvent.class).map(new Func1<PlayerQuitEvent, Player>() {
@@ -317,7 +317,7 @@ public class InventoryGUI {
     }
 
     public boolean isOpenFor(Player player) {
-        return observers.contains(player);
+        return observers.contains(player.getUniqueId());
     }
 
     /**
@@ -327,14 +327,14 @@ public class InventoryGUI {
      * @param player The player who you want to close the inventory for
      */
     public void closeFor(Player player) {
-        if (!observers.contains(player)) return;
+        if (!observers.contains(player.getUniqueId())) return;
         player.closeInventory();
         inventoryClosed(player);
     }
 
     //removes players from the observable set now that they've closed the inventory
     protected void inventoryClosed(Player player) {
-        observers.remove(player);
+        observers.remove(player.getUniqueId());
     }
 
     //used to mark a slot for update
