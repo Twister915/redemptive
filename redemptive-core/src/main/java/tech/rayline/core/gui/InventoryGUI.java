@@ -6,9 +6,8 @@ import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
-import org.bukkit.event.inventory.InventoryMoveItemEvent;
+import org.bukkit.event.inventory.InventoryInteractEvent;
 import org.bukkit.event.inventory.InventoryType;
-import org.bukkit.event.player.PlayerEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
@@ -25,7 +24,6 @@ import tech.rayline.core.plugin.RedemptivePlugin;
 import tech.rayline.core.util.SoundUtil;
 
 import java.util.*;
-import java.util.function.Consumer;
 
 /**
  * This class represents an InventoryGUI which can be opened for players
@@ -89,7 +87,7 @@ public class InventoryGUI {
     //creates and returns the subscription for the main events
     private Subscription beginObserving() {
         //using a composite subscription because we have two entirely separate subscriptions to two different events. We want to still represent this as a single subscription, however.
-        CompositeSubscription subscription = new CompositeSubscription();
+        final CompositeSubscription subscription = new CompositeSubscription();
         //noinspection SuspiciousMethodCalls
         subscription.add(
                 //this is the main subscription that we use to actually catch clicks
@@ -98,13 +96,14 @@ public class InventoryGUI {
                     @Override
                     public Boolean call(InventoryClickEvent event) {
                         //noinspection SuspiciousMethodCalls
-                        return event.getInventory().equals(bukkitInventory) && observers.contains(event.getWhoClicked().getUniqueId());
+                        return event.getInventory().getTitle().equals(bukkitInventory.getTitle()) && observers.contains(event.getWhoClicked().getUniqueId());
                     }
                 })
                 .subscribe(new Action1<InventoryClickEvent>() {
                     @Override
                     public void call(InventoryClickEvent event) {
                         event.setCancelled(true);
+
                         try {
                             InventoryGUIButton buttonAt = getButtonAt(event.getRawSlot());
                             if (buttonAt == null)
@@ -113,6 +112,7 @@ public class InventoryGUI {
                             Player whoClicked = (Player) event.getWhoClicked();
                             try {
                                 buttonAt.onPlayerClick(whoClicked, ClickAction.from(event.getClick()));
+                                whoClicked.updateInventory();
                             } catch (EmptyHandlerException e) {
                                 SoundUtil.playTo(whoClicked, Sound.NOTE_PLING);
                             }
@@ -121,23 +121,6 @@ public class InventoryGUI {
                         }
                     }
                 }));
-
-        subscription.add(
-                //this prevents people from moving items in and out of the inventory GUI
-                plugin.observeEvent(InventoryMoveItemEvent.class)
-                .filter(new Func1<InventoryMoveItemEvent, Boolean>() {
-                    @Override
-                    public Boolean call(InventoryMoveItemEvent event) {
-                        return event.getSource().equals(bukkitInventory) || event.getDestination().equals(bukkitInventory);
-                    }
-                })
-                .subscribe(new Action1<InventoryMoveItemEvent>() {
-                    @Override
-                    public void call(InventoryMoveItemEvent event) {
-                        event.setCancelled(true);
-                    }
-                })
-        );
 
         return subscription;
     }
@@ -293,6 +276,7 @@ public class InventoryGUI {
                 .filter(new Func1<Player, Boolean>() {
                     @Override
                     public Boolean call(Player pl) {
+                        if (pl.equals(player)) System.out.println("Filtered player on close!");
                         return pl.equals(player);
                     }
                 })
@@ -308,6 +292,7 @@ public class InventoryGUI {
                 .subscribe(new Action1<Player>() {
                     @Override
                     public void call(Player player) {
+                        System.out.println("Inventory closed has been called!");
                         inventoryClosed(player);
                     }
                 });
