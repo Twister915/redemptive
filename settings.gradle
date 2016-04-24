@@ -1,6 +1,5 @@
 rootProject.name = 'redemptive-parent'
 include 'redemptive-serialize'
-include 'redemptive-protocol'
 include 'redemptive-persist'
 include 'redemptive-core'
 include 'redemptive-sql'
