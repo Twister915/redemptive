@@ -118,8 +118,6 @@ Also note some interesting feature methods, including promptSender
 This method will return to you, through rx event handling, a string which the player typed into the chat. 
 
 The implementation of this will be displayed in the ReactiveX event handling section.
- 
-The promptPlayerLines 
 
 ## ReactiveX event handling
  
