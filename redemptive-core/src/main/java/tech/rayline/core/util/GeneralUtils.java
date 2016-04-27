@@ -104,7 +104,7 @@ public final class GeneralUtils {
         return builder.toString();
     }
 
-    private static enum TimeUnit {
+    private enum TimeUnit {
         SECONDS(60, 's'),
         MINUTES(60, 'm'),
         HOURS(24, 'h'),

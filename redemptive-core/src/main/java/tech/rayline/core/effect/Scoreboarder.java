@@ -1,5 +1,6 @@
 package tech.rayline.core.effect;
 
+import com.google.common.base.Optional;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import lombok.AccessLevel;
@@ -21,11 +22,8 @@ import tech.rayline.core.plugin.RedemptivePlugin;
 import tech.rayline.core.util.RunnableShorthand;
 
 import java.util.HashSet;
-import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ThreadLocalRandom;
-import java.util.function.Consumer;
-import java.util.function.Predicate;
 
 /**
  * This represents a "Scoreboard Type" which can be connected with a score boarding function which populates a scoreboard.
@@ -76,12 +74,10 @@ public final class Scoreboarder implements Runnable {
     }
 
     public Optional<PlayerScoreboardState> getStateFor(final Player player) {
-        return scoreboardStates.stream().filter(new Predicate<PlayerScoreboardState>() {
-            @Override
-            public boolean test(PlayerScoreboardState state) {
-                return state.getPlayer().equals(player);
-            }
-        }).findFirst();
+        for (PlayerScoreboardState scoreboardState : scoreboardStates)
+            if (scoreboardState.getPlayer().equals(player))
+                return Optional.of(scoreboardState);
+        return Optional.absent();
     }
 
     public void removePlayer(Player player) {
@@ -95,12 +91,8 @@ public final class Scoreboarder implements Runnable {
 
     @Override
     public void run() {
-        scoreboardStates.forEach(new Consumer<PlayerScoreboardState>() {
-            @Override
-            public void accept(PlayerScoreboardState playerScoreboardState) {
-                playerScoreboardState.update();
-            }
-        });
+        for (PlayerScoreboardState scoreboardState : scoreboardStates)
+            scoreboardState.update();
     }
 
     @Data
