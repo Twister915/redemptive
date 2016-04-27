@@ -34,7 +34,7 @@ An overview of a few of the key systems in Redemptive
 Below is an example command-
 
 ```
-public final class CancelCommand extends RedemptiveCommand {
+public final class CancelCommand extends RDCommand {
     public CancelCommand() {
         super("cancel");
     }
@@ -56,7 +56,7 @@ registerCommand(new CancelCommand());
 You can also use a RedemptiveCommand as a subcommand to another RedemptiveCommand
 ```
 @CommandPermission("animatic.any")
-public final class AnimaticCommand extends BaseAnimaticCommand {
+public final class AnimaticCommand extends RDCommand {
     public AnimaticCommand() {
         super("animatic", new RecordCommand(), new PlayerCommand("player"), new ReloadCommand());
     }
@@ -75,11 +75,101 @@ protected void handleCommandException(CommandException ex, String[] args, Comman
 
 If there is an unhandled exception that does not subclass CommandException, then you will receive the hilariously named **UnhandledCommandExceptionException**
 
+Here is a more complete example of a command which shows how to use exceptions and other features of redemptive commands
+
+```
+    @Override
+    protected void handleCommand(Player player, String[] args) throws CommandException {
+        if (args.length < 3) throw new ArgumentRequirementException("[mob type] [tutorial] [name...]");
+        EntityType type;
+        try {
+            type = EntityType.valueOf(args[0]);
+        } catch (Exception e) {
+            throw new ArgumentRequirementException("The mob type is not valid!");
+        }
+        String[] nameParts = new String[args.length - 2];
+        System.arraycopy(args, 2, nameParts, 0, nameParts.length);
+        String name = Joiner.on(' ').join(nameParts), tutorial = args[1];
+        TutorialManager tutorialManager = TutorialPlugin.getInstance().getTutorialManager();
+        Optional<Tutorial> tut = tutorialManager.getTutorial(tutorial);
+        if (!tut.isPresent())
+            throw new ArgumentRequirementException("Could not find that tutorial!");
+        tutorialManager.getMobsFile().addMob(new InteractableMob(player.getLocation().clone(), tutorial, name, type));
+        player.sendMessage(formatAt("added-mob").get());
+    }
+```
+
+Also note some interesting feature methods, including promptSender
+
+```
+   @Override
+    protected void handleCommand(Player player, String[] args) throws CommandException {
+        SetupContext contextFor = getContextFor(player);
+        contextFor.setLock(true);
+        SegmentContext segmentContext = contextFor.getSegmentContext();
+        promptSender(player, "type a line to add into the chat").subscribe(line -> {
+            segmentContext.addLine(line);
+            messageSet(player, "lines #" + segmentContext.getLines().size(), line);
+            contextFor.setLock(false);
+        });
+    }
+```
+
+This method will return to you, through rx event handling, a string which the player typed into the chat. 
+
+The implementation of this will be displayed in the ReactiveX event handling section.
+ 
+The promptPlayerLines 
+
 ## ReactiveX event handling
  
  ReactiveX is documented here https://www.spigotmc.org/threads/rxbukkit-a-new-event-philosphy.115344/
  
  You may observe events using the methods on your plugin, all of which are named observeEvent.
+ 
+ Here's an example of a feature which is in our command system using this methodology
+```
+    protected void messagePrompt(CommandSender sender, String action) {
+        sender.sendMessage(formatAt("setup.prompt").withModifier("action", action).get());
+    }
+
+    protected final Single<String> promptPlayer(Player player, String s) {
+        return promptSender(player, s);
+    }
+
+    protected final Single<String> promptSender(final CommandSender sender, String s) {
+        messagePrompt(sender, s);
+        Observable<String> observable;
+        if (sender instanceof Player) {
+            observable = getPlugin()
+                    .observeEvent(AsyncPlayerChatEvent.class)
+                    .filter(new Func1<AsyncPlayerChatEvent, Boolean>() {
+                        @Override
+                        public Boolean call(AsyncPlayerChatEvent event) {
+                            return event.getPlayer().equals(sender);
+                        }
+                    })
+                    .map(new Func1<AsyncPlayerChatEvent, String>() {
+                        @Override
+                        public String call(AsyncPlayerChatEvent event) {
+                            event.setCancelled(true);
+                            return event.getMessage();
+                        }
+                    });
+        } else if (sender instanceof ConsoleCommandSender) {
+            observable = getPlugin().observeEvent(ServerCommandEvent.class)
+                    .map(new Func1<ServerCommandEvent, String>() {
+                        @Override
+                        public String call(ServerCommandEvent event) {
+                            event.setCancelled(true);
+                            return event.getCommand();
+                        }
+                    });
+        } else throw new IllegalArgumentException("You cannot perform this command!");
+
+        return observable.take(1).toSingle();
+    }
+```
  
  
 ## Formats System
