@@ -78,6 +78,24 @@ If there is an unhandled exception that does not subclass CommandException, then
  You may observe events using the methods on your plugin, all of which are named observeEvent.
  
  
+## Formats System
+
+You may specify a set of "formats" for a plugin as to not include any message strings in your source.
+
+The following is an example of "getting" a format with variables
+
+```
+player.sendMessage(instance.formatAt("players.list-diffworld-line").withModifier("name", staticPlayer.getName()).get());
+```
+
+You must add
+```
+@UsesFormats
+```
+to your plugin type to enable this feature.
+
+Note, there is a special key: ```prefix``` which can be added to your formats.yml and will always be prepended to formats. You can omit the prefix setting in a specific format (say, for an action bar message) by using ```withPrefix(false)``` while building your format.
+ 
 ## Dependency Downloading and Loading
 You may annotate your plugin with the following annotation: 
 ```
