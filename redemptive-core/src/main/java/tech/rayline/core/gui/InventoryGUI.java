@@ -6,7 +6,6 @@ import org.bukkit.Sound;
 import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryCloseEvent;
-import org.bukkit.event.inventory.InventoryInteractEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.Inventory;
@@ -276,7 +275,6 @@ public class InventoryGUI {
                 .filter(new Func1<Player, Boolean>() {
                     @Override
                     public Boolean call(Player pl) {
-                        if (pl.equals(player)) System.out.println("Filtered player on close!");
                         return pl.equals(player);
                     }
                 })
@@ -292,7 +290,6 @@ public class InventoryGUI {
                 .subscribe(new Action1<Player>() {
                     @Override
                     public void call(Player player) {
-                        System.out.println("Inventory closed has been called!");
                         inventoryClosed(player);
                     }
                 });
