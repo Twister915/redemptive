@@ -113,7 +113,7 @@ public class InventoryGUI {
                                 buttonAt.onPlayerClick(whoClicked, ClickAction.from(event.getClick()));
                                 whoClicked.updateInventory();
                             } catch (EmptyHandlerException e) {
-                                SoundUtil.playTo(whoClicked, Sound.NOTE_PLING);
+                                SoundUtil.playTo(whoClicked, Sound.BLOCK_NOTE_PLING);
                             }
                         } catch (Exception e) {
                             e.printStackTrace();
@@ -161,8 +161,6 @@ public class InventoryGUI {
     /**
      * This will force the inventory to fall out of scope by clearing and un-subscribing various things
      */
-
-
     public void invalidate() {
         mainSubscription.unsubscribe();
         for (UUID observer : observers)
