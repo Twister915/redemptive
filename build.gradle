@@ -1,2 +1,19 @@
 group 'tech.rayline.redemptive'
 version '1.1-SNAPSHOT'
+
+subprojects {
+	apply plugin: 'maven-publish'
+	publishing {
+		publications {
+			mavenCustom(MavenPublication) {
+				from components.java
+			}
+		}
+	}
+
+	model {
+		tasks.generatePomFileForMavenCustomPublication {
+			destination = file("$buildDir/generated-pom.xml")
+		}
+	}
+}
