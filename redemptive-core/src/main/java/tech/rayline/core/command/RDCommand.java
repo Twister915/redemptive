@@ -1,5 +1,6 @@
 package tech.rayline.core.command;
 
+import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableList;
 import lombok.AccessLevel;
 import lombok.Data;
@@ -181,9 +182,10 @@ public abstract class RDCommand implements CommandExecutor, TabCompleter {
 
     public final List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) {
         //Security for tab complete
-        if (getClass().isAnnotationPresent(CommandPermission.class)) {
-            CommandPermission annotation = getClass().getAnnotation(CommandPermission.class);
-            if (!sender.hasPermission(annotation.value()) && !(sender.isOp() && annotation.isOpExempt())) return Collections.emptyList();
+        try {
+            checkPermission(sender);
+        } catch (PermissionException e) {
+            return Collections.emptyList();
         }
         //Step one, check if we have to go a level deeper in the sub command system:
         if (args.length > 1) {
