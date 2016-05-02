@@ -102,6 +102,13 @@ public abstract class RDCommand implements CommandExecutor, TabCompleter {
         });
     }
 
+    protected void checkPermission(CommandSender sender) throws PermissionException {
+        if (getClass().isAnnotationPresent(CommandPermission.class)) {
+            CommandPermission annotation = getClass().getAnnotation(CommandPermission.class);
+            if (!sender.hasPermission(annotation.value()) && !(sender.isOp() && annotation.isOpExempt())) throw new PermissionException("You do not have permission for this command!");
+        }
+    }
+
     public final boolean onCommand(final CommandSender sender, Command command, String s, final String[] args) {
         //Handling commands can be done by the logic below, and all errors should be thrown using an exception.
         //If you wish to override the behavior of displaying that error to the player, it is discouraged to do that in
@@ -111,10 +118,7 @@ public abstract class RDCommand implements CommandExecutor, TabCompleter {
             RDCommand subCommand = null;
 
             //Get the permission and test for it
-            if (getClass().isAnnotationPresent(CommandPermission.class)) {
-                CommandPermission annotation = getClass().getAnnotation(CommandPermission.class);
-                if (!sender.hasPermission(annotation.value()) && !(sender.isOp() && annotation.isOpExempt())) throw new PermissionException("You do not have permission for this command!");
-            }
+            checkPermission(sender);
 
             //Check if we HAVE to use sub-commands (a behavior this class provides)
             if (isUsingSubCommandsOnly()) {
