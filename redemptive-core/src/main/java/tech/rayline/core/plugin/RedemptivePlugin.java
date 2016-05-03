@@ -5,11 +5,9 @@ import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandMap;
 import org.bukkit.command.PluginCommand;
-import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerEvent;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -17,6 +15,8 @@ import rx.Observable;
 import tech.rayline.core.command.CommandMeta;
 import tech.rayline.core.command.RDCommand;
 import tech.rayline.core.inject.Injector;
+import tech.rayline.core.jsonchat.JsonMessageFormatter;
+import tech.rayline.core.jsonchat.XmlJsonChatConverter;
 import tech.rayline.core.library.LibraryHandler;
 import tech.rayline.core.library.MavenLibraries;
 import tech.rayline.core.library.MavenLibrary;
@@ -28,6 +28,7 @@ import tech.rayline.core.rx.EventStreamer;
 import tech.rayline.core.rx.PeriodicPlayerStreamer;
 import tech.rayline.core.rx.RxBukkitScheduler;
 
+import java.io.InputStream;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.util.Arrays;
@@ -110,6 +111,26 @@ public abstract class RedemptivePlugin extends JavaPlugin {
 
     public final Formatter.FormatBuilder formatAt(String key) {
         return getFormatter().begin(key);
+    }
+
+    public final JsonMessageFormatter xmlFormatWith(InputStream stream) throws Exception {
+        Formatter.FormatBuilder formatBuilder = formatter.withValue(XmlJsonChatConverter.parseXML(stream));
+        return new JsonMessageFormatter(formatBuilder);
+    }
+
+    public final JsonMessageFormatter xmlFromResouce(String resourceName) throws Exception {
+        return xmlFormatWith(getResource(resourceName));
+    }
+
+    public final JsonMessageFormatter xmlFromFormatsFile(String path) throws Exception {
+        String string = formatsFile.getConfig().getString(path);
+        if (string == null)
+            throw new IllegalArgumentException("JSON message could not be found in formats.yml");
+        return xmlFormatFromString(string);
+    }
+
+    public final JsonMessageFormatter xmlFormatFromString(String xml) throws Exception {
+        return xmlFormatWith(XmlJsonChatConverter.streamFrom(xml));
     }
 
     public void saveAll() {
