@@ -114,8 +114,7 @@ public abstract class RedemptivePlugin extends JavaPlugin {
     }
 
     public final JsonMessageFormatter xmlFormatWith(InputStream stream) throws Exception {
-        Formatter.FormatBuilder formatBuilder = formatter.withValue(XmlJsonChatConverter.parseXML(stream));
-        return new JsonMessageFormatter(formatBuilder);
+        return new JsonMessageFormatter(stream);
     }
 
     public final JsonMessageFormatter xmlFromResouce(String resourceName) throws Exception {

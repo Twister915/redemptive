@@ -13,7 +13,9 @@ import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @SuppressWarnings("unchecked")
 public final class XmlJsonChatConverter {
@@ -23,6 +25,10 @@ public final class XmlJsonChatConverter {
     private final static String[] CLICK_ACTIONS = new String[]{"open_url", "open_file", "run_command", "suggest_command"};
 
     public static String parseXML(InputStream xml) throws Exception {
+        return parseXML(xml, new HashMap<String, String>());
+    }
+
+    public static String parseXML(InputStream xml, Map<String, String> variables) throws Exception {
         DocumentBuilder documentBuilder = FACTORY.newDocumentBuilder();
         Document parse = documentBuilder.parse(xml);
         Element root = parse.getDocumentElement();
@@ -31,16 +37,16 @@ public final class XmlJsonChatConverter {
             throw new JsonChatParseException("The root node is not a message! Start your xml with <message>!");
         List<Element> t = getChildrenElementsOfName(root, "t");
         if (t.size() != 0) {
-            return parseContent(t).toString();
+            return parseContent(t, variables).toString();
         }
         throw new JsonChatParseException("You did not specify a message!");
     }
 
-    private static JSONObject parseContent(List<Element> elements) throws JsonChatParseException {
+    private static JSONObject parseContent(List<Element> elements, Map<String, String> variables) throws JsonChatParseException {
         JSONObject rootObject = new JSONObject();
         boolean first = false;
         for (Element item : elements) {
-            JSONObject nodeObject = parseContent(item);
+            JSONObject nodeObject = parseContent(item, variables);
             if (!first) {
                 rootObject = nodeObject;
                 first = true;
@@ -70,14 +76,31 @@ public final class XmlJsonChatConverter {
         return elements;
     }
 
+    private static String replaceVars(String content, Map<String, String> variables) {
+        StringBuilder stringBuffer = new StringBuilder(content);
+        for (Map.Entry<String, String> stringStringEntry : variables.entrySet()) {
+            String key = "{{" + stringStringEntry.getKey() + "}}", value = stringStringEntry.getValue();
+            int lastIndex = 0;
+            while (lastIndex <= stringBuffer.length()) {
+                int nextIndex = stringBuffer.indexOf(key, lastIndex);
+                if (nextIndex == -1)
+                    break;
+
+                stringBuffer.replace(nextIndex, key.length(), value);
+                lastIndex = nextIndex + value.length();
+            }
+        }
+        return stringBuffer.toString();
+    }
+
     /**
      * Returns a json object for a specific text node
      * @param textNode The text node
      * @return The json object
      */
-    private static JSONObject parseContent(Element textNode) throws JsonChatParseException {
+    private static JSONObject parseContent(Element textNode, Map<String, String> variables) throws JsonChatParseException {
         JSONObject elementContent = new JSONObject();
-        elementContent.put("text", getFirstLevelTextContent(textNode));
+        elementContent.put("text", replaceVars(getFirstLevelTextContent(textNode), variables));
 
         for (String booleanOption : BOOLEAN_OPTIONS) {
             if (!textNode.hasAttribute(booleanOption)) continue;
@@ -98,10 +121,10 @@ public final class XmlJsonChatConverter {
             Element element = (Element) item;
             switch (element.getTagName()) {
                 case "hover":
-                    elementContent.put("hoverEvent", parseHoverEvent(element));
+                    elementContent.put("hoverEvent", parseHoverEvent(element, variables));
                     break;
                 case "click":
-                    elementContent.put("clickEvent", parseClickEvent(element));
+                    elementContent.put("clickEvent", parseClickEvent(element, variables));
                     break;
                 default:
                     throw new JsonChatParseException("Unknown tag type " + element.getTagName());
@@ -121,7 +144,7 @@ public final class XmlJsonChatConverter {
         return textContent.toString();
     }
 
-    private static JSONObject parseHoverEvent(Element element) throws JsonChatParseException {
+    private static JSONObject parseHoverEvent(Element element, Map<String, String> variables) throws JsonChatParseException {
         JSONObject hoverEvent = new JSONObject();
         String action = null;
         Object value = null;
@@ -131,7 +154,7 @@ public final class XmlJsonChatConverter {
 
         if (childTs.size() != 0) {
             action = "text";
-            value = parseContent(childTs);
+            value = parseContent(childTs, variables);
         }
         else if (childItem.size() == 1) {
 //            action = "item";
@@ -146,20 +169,20 @@ public final class XmlJsonChatConverter {
 
         if (value != null) {
             hoverEvent.put("action", action);
-            hoverEvent.put("value", value);
+            hoverEvent.put("value", replaceVars(value.toString(), variables));
             return hoverEvent;
         }
         throw new JsonChatParseException("Invalid hover event specified!");
     }
 
-    private static JSONObject parseClickEvent(Element element) throws JsonChatParseException {
+    private static JSONObject parseClickEvent(Element element, Map<String, String> variables) throws JsonChatParseException {
         JSONObject jsonObject = new JSONObject();
         String action;
         if (!element.hasAttribute("action") || !contains(CLICK_ACTIONS, action = element.getAttribute("action")))
             throw new JsonChatParseException("No (or invalid) action specified for click event!");
 
         jsonObject.put("action", action);
-        jsonObject.put("value", getFirstLevelTextContent(element));
+        jsonObject.put("value", replaceVars(getFirstLevelTextContent(element), variables));
         return jsonObject;
     }
 
