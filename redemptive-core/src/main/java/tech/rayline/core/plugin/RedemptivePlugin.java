@@ -29,6 +29,7 @@ import tech.rayline.core.rx.PeriodicPlayerStreamer;
 import tech.rayline.core.rx.RxBukkitScheduler;
 
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.util.Arrays;
@@ -113,23 +114,27 @@ public abstract class RedemptivePlugin extends JavaPlugin {
         return getFormatter().begin(key);
     }
 
-    public final JsonMessageFormatter xmlFormatWith(InputStream stream) throws Exception {
+    public final JsonMessageFormatter xmlFormatWith(InputStream stream) {
         return new JsonMessageFormatter(stream);
     }
 
-    public final JsonMessageFormatter xmlFromResouce(String resourceName) throws Exception {
+    public final JsonMessageFormatter xmlFromResouce(String resourceName) {
         return xmlFormatWith(getResource(resourceName));
     }
 
-    public final JsonMessageFormatter xmlFromFormatsFile(String path) throws Exception {
+    public final JsonMessageFormatter xmlFromFormatsFile(String path) {
         String string = formatsFile.getConfig().getString(path);
         if (string == null)
             throw new IllegalArgumentException("JSON message could not be found in formats.yml");
         return xmlFormatFromString(string);
     }
 
-    public final JsonMessageFormatter xmlFormatFromString(String xml) throws Exception {
-        return xmlFormatWith(XmlJsonChatConverter.streamFrom(xml));
+    public final JsonMessageFormatter xmlFormatFromString(String xml) {
+        try {
+            return xmlFormatWith(XmlJsonChatConverter.streamFrom(xml));
+        } catch (UnsupportedEncodingException e) {
+            throw new IllegalStateException("Could not encode message to UTF-8", e);
+        }
     }
 
     public void saveAll() {

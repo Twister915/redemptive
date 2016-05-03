@@ -11,8 +11,13 @@ import java.util.Map;
     private final Map<String, String> variables = new HashMap<String, String>();
 
 
-    public String get() throws Exception {
-        return XmlJsonChatConverter.parseXML(inputStream, variables);
+    public String get() {
+        try {
+            return XmlJsonChatConverter.parseXML(inputStream, variables);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "Error reading message from formats.yml";
+        }
     }
 
     public JsonMessageFormatter with(String key, Object value) {
