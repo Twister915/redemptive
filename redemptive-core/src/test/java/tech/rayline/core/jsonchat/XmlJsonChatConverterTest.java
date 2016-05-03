@@ -49,7 +49,7 @@ public class XmlJsonChatConverterTest {
 
     private static void assertJsonEquiv(String o1, String o2) throws ParseException {
         JSONParser jsonParser = new JSONParser();
-        assertTrue(jsonParser.parse(o1).equals(jsonParser.parse(o2)));
+        assertEquals(jsonParser.parse(o1).toString(), jsonParser.parse(o2).toString());
     }
 
     private static String parseXML(String xml) throws Exception {

@@ -164,12 +164,12 @@ public final class XmlJsonChatConverter {
         }
         else if (childAchievement.size() == 1) {
             action = "achievement";
-            value = getFirstLevelTextContent(childAchievement.get(0));
+            value = replaceVars(getFirstLevelTextContent(childAchievement.get(0)), variables);
         }
 
         if (value != null) {
             hoverEvent.put("action", action);
-            hoverEvent.put("value", replaceVars(value.toString(), variables));
+            hoverEvent.put("value", value);
             return hoverEvent;
         }
         throw new JsonChatParseException("Invalid hover event specified!");
