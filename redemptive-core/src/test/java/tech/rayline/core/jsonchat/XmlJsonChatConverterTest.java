@@ -10,19 +10,19 @@ public class XmlJsonChatConverterTest {
     @Test
     public void testBasicText() throws Exception {
         String s = parseXML("<message><t>Hey, yow you doing</t></message>");
-        assertJsonEquiv("{\"color\":\"white\",\"text\":\"Hey, yow you doing\"}", s);
+        assertJsonEquiv("{\"color\":\"white\",\"extra\":[{\"color\":\"white\",\"text\":\"Hey, yow you doing\"}],\"text\":\"\"}", s);
     }
 
     @Test
     public void testColoredBoldText() throws Exception {
         String s = parseXML("<message><t color=\"red\" bold=\"true\">Hey, yow you doing</t></message>");
-        assertJsonEquiv("{\"color\":\"red\",\"text\":\"Hey, yow you doing\",\"bold\":true}", s);
+        assertJsonEquiv("{\"color\":\"white\",\"extra\":[{\"color\":\"red\",\"text\":\"Hey, yow you doing\",\"bold\":true}],\"text\":\"\"}", s);
     }
 
     @Test
     public void testClickEvent() throws Exception {
         String s = parseXML("<message><t color=\"green\">View More<click action=\"run_command\">/moreinfo {{data}}</click></t></message>");
-        assertJsonEquiv("{\"clickEvent\":{\"action\":\"run_command\",\"value\":\"\\/moreinfo {{data}}\"},\"color\":\"green\",\"text\":\"View More\"}", s);
+        assertJsonEquiv("{\"color\":\"white\",\"extra\":[{\"clickEvent\":{\"action\":\"run_command\",\"value\":\"\\/moreinfo {{data}}\"},\"color\":\"green\",\"text\":\"View More\"}],\"text\":\"\"}", s);
     }
 
     @Test
@@ -38,13 +38,13 @@ public class XmlJsonChatConverterTest {
                 "</t>" +
                 "</message>");
 
-        assertJsonEquiv("{\"hoverEvent\":{\"action\":\"text\",\"value\":{\"color\":\"green\",\"extra\":[{\"color\":\"red\",\"text\":\"This user is banned\",\"bold\":true}],\"text\":\"kek\"}},\"color\":\"red\",\"text\":\"[x]\",\"bold\":true}", s);
+        assertJsonEquiv("{\"color\":\"white\",\"extra\":[{\"hoverEvent\":{\"action\":\"show_text\",\"value\":{\"color\":\"white\",\"extra\":[{\"color\":\"green\",\"text\":\"kek\"},{\"color\":\"red\",\"text\":\"This user is banned\",\"bold\":true}],\"text\":\"\"}},\"color\":\"red\",\"text\":\"[x]\",\"bold\":true}],\"text\":\"\"}", s);
     }
 
     @Test
     public void testExtra() throws Exception {
         String s = parseXML("<message><t>Hey </t><t color=\"green\">how are you? </t><t bold=\"true\" color=\"green\">Click here for more info<click action=\"run_command\">/viewinfo {{msg-id}}</click></t></message>");
-        assertJsonEquiv("{\"color\":\"white\",\"extra\":[{\"color\":\"green\",\"text\":\"how are you? \"},{\"clickEvent\":{\"action\":\"run_command\",\"value\":\"\\/viewinfo {{msg-id}}\"},\"color\":\"green\",\"text\":\"Click here for more info\",\"bold\":true}],\"text\":\"Hey \"}", s);
+        assertJsonEquiv("{\"color\":\"white\",\"extra\":[{\"color\":\"white\",\"text\":\"Hey \"},{\"color\":\"green\",\"text\":\"how are you? \"},{\"clickEvent\":{\"action\":\"run_command\",\"value\":\"\\/viewinfo {{msg-id}}\"},\"color\":\"green\",\"text\":\"Click here for more info\",\"bold\":true}],\"text\":\"\"}", s);
     }
 
     private static void assertJsonEquiv(String o1, String o2) throws ParseException {

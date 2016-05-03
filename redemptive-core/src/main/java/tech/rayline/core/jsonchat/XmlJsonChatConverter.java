@@ -44,21 +44,16 @@ public final class XmlJsonChatConverter {
 
     private static JSONObject parseContent(List<Element> elements, Map<String, String> variables) throws JsonChatParseException {
         JSONObject rootObject = new JSONObject();
-        boolean first = false;
+        rootObject.put("text", "");
+        rootObject.put("color", "white");
         for (Element item : elements) {
             JSONObject nodeObject = parseContent(item, variables);
-            if (!first) {
-                rootObject = nodeObject;
-                first = true;
+            Object extraRaw = rootObject.get("extra");
+            if (extraRaw == null) {
+                extraRaw = new JSONArray();
+                rootObject.put("extra", extraRaw);
             }
-            else {
-                Object extraRaw = rootObject.get("extra");
-                if (extraRaw == null) {
-                    extraRaw = new JSONArray();
-                    rootObject.put("extra", extraRaw);
-                }
-                ((JSONArray) extraRaw).add(nodeObject);
-            }
+            ((JSONArray) extraRaw).add(nodeObject);
         }
         return rootObject;
     }
@@ -168,7 +163,7 @@ public final class XmlJsonChatConverter {
         }
 
         if (value != null) {
-            hoverEvent.put("action", action);
+            hoverEvent.put("action", "show_" + action);
             hoverEvent.put("value", value);
             return hoverEvent;
         }
