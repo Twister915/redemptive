@@ -11,7 +11,6 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -22,7 +21,7 @@ import java.util.Map;
 public final class XmlJsonChatConverter {
     private final static DocumentBuilderFactory FACTORY = DocumentBuilderFactory.newInstance();
     private final static String[] BOOLEAN_OPTIONS = new String[]{"bold", "italic", "underlined", "strikethrough", "obfuscated"};
-    private final static String[] COLORS = new String[]{"black","dark_blue","dark_green","dark_aqua","dark_red","dark_purple","gold","gray","dark_gray","blue","green","aqua","red","light_purple","yellow","white"};
+    private final static String[] COLORS = new String[]{"black", "dark_blue", "dark_green", "dark_aqua", "dark_red", "dark_purple", "gold", "gray", "dark_gray", "blue", "green", "aqua", "red", "light_purple", "yellow", "white"};
     private final static String[] CLICK_ACTIONS = new String[]{"open_url", "open_file", "run_command", "suggest_command"};
 
     public static String parseXML(InputStream xml) throws Exception {
@@ -91,12 +90,12 @@ public final class XmlJsonChatConverter {
 
     /**
      * Returns a json object for a specific text node
+     *
      * @param textNode The text node
      * @return The json object
      */
     private static JSONObject parseContent(Element textNode, Map<String, String> variables) throws JsonChatParseException {
         JSONObject elementContent = new JSONObject();
-        elementContent.put("text", replaceVars(getFirstLevelTextContent(textNode), variables));
 
         for (String booleanOption : BOOLEAN_OPTIONS) {
             if (!textNode.hasAttribute(booleanOption)) continue;
@@ -106,13 +105,26 @@ public final class XmlJsonChatConverter {
         String color = null;
         if (textNode.hasAttribute("color"))
             color = textNode.getAttribute("color").toLowerCase();
-        if (color == null || !contains(COLORS, color))
+        if (!contains(COLORS, color))
             color = "white";
         elementContent.put("color", color);
 
         NodeList childNodes = textNode.getChildNodes();
         for (int i = 0; i < childNodes.getLength(); i++) {
             Node item = childNodes.item(i);
+            if (item.getNodeType() == Node.TEXT_NODE) {
+                String content = replaceVars(item.getTextContent(), variables);
+                if (elementContent.get("extra") == null) {
+                    String previousContent = (String) elementContent.get("text");
+                    elementContent.put("text", previousContent != null ? previousContent : "" +
+                            content);
+                } else {
+                    JSONObject plainTextExtra = new JSONObject();
+                    plainTextExtra.put("text", content);
+                    ((JSONArray) elementContent.get("extra")).add(plainTextExtra);
+                }
+                continue;
+            }
             if (item.getNodeType() != Node.ELEMENT_NODE) continue;
             Element element = (Element) item;
             switch (element.getTagName()) {
@@ -121,6 +133,15 @@ public final class XmlJsonChatConverter {
                     break;
                 case "click":
                     elementContent.put("clickEvent", parseClickEvent(element, variables));
+                    break;
+                case "t":
+                    JSONObject nodeObject = parseContent(element, variables);
+                    Object extraRaw = elementContent.get("extra");
+                    if (extraRaw == null) {
+                        extraRaw = new JSONArray();
+                        elementContent.put("extra", extraRaw);
+                    }
+                    ((JSONArray) extraRaw).add(nodeObject);
                     break;
                 default:
                     throw new JsonChatParseException("Unknown tag type " + element.getTagName());
@@ -151,14 +172,12 @@ public final class XmlJsonChatConverter {
         if (childTs.size() != 0) {
             action = "text";
             value = parseContent(childTs, variables);
-        }
-        else if (childItem.size() == 1) {
+        } else if (childItem.size() == 1) {
 //            action = "item";
 //            Element item = childItem.get(0);
             //todo
             throw new JsonChatParseException("Cannot handle items at the moment, stay tuned!");
-        }
-        else if (childAchievement.size() == 1) {
+        } else if (childAchievement.size() == 1) {
             action = "achievement";
             value = replaceVars(getFirstLevelTextContent(childAchievement.get(0)), variables);
         }

@@ -1,8 +1,15 @@
 package tech.rayline.core.jsonchat;
 
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.junit.Test;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
 
 import static org.junit.Assert.*;
 
@@ -47,13 +54,43 @@ public class XmlJsonChatConverterTest {
         assertJsonEquiv("{\"color\":\"white\",\"extra\":[{\"color\":\"white\",\"text\":\"Hey \"},{\"color\":\"green\",\"text\":\"how are you? \"},{\"clickEvent\":{\"action\":\"run_command\",\"value\":\"\\/viewinfo {{msg-id}}\"},\"color\":\"green\",\"text\":\"Click here for more info\",\"bold\":true}],\"text\":\"\"}", s);
     }
 
+    @Test
+    public void testNestedTNodes() throws Exception {
+        String s = parseXML("<message><t>Hello <t color=\"blue\">Joe</t> how are you?</t></message>");
+        assertJsonEquiv("{\"color\":\"white\",\"extra\":[{\"color\":\"white\",\"extra\":[{\"color\":\"blue\",\"text\":\"Joe\"},{\"text\":\" how are you?\"}],\"text\":\"Hello \"}],\"text\":\"\"}\n", s);
+    }
+
     private static void assertJsonEquiv(String o1, String o2) throws ParseException {
         JSONParser jsonParser = new JSONParser();
-        assertEquals(jsonParser.parse(o1).toString(), jsonParser.parse(o2).toString());
+        assertEquals(orderJson(jsonParser.parse(o1)).toString(), orderJson(jsonParser.parse(o2)).toString());
+    }
+
+    private static Object orderJson(Object o) {
+        if (o instanceof JSONArray) return orderJson(((JSONArray) o));
+        else if (o instanceof JSONObject) return orderJson(((JSONObject) o));
+        else return o;
+    }
+
+    private static JSONArray orderJson(JSONArray object) {
+        JSONArray out = new JSONArray();
+        for (int i = 0; i < object.size(); i++) {
+            out.add(orderJson(object.get(i)));
+        }
+        return out;
+    }
+
+    private static JSONObject orderJson(JSONObject object) {
+        List<String> keys = new ArrayList<>(object.keySet());
+        Collections.sort(keys);
+        JSONObject ret = new JSONObject();
+        for (String key : keys) {
+            ret.put(key, orderJson(object.get(key)));
+        }
+        return ret;
     }
 
     private static String parseXML(String xml) throws Exception {
-        return  XmlJsonChatConverter.parseXML(XmlJsonChatConverter.streamFrom(xml));
+        return XmlJsonChatConverter.parseXML(XmlJsonChatConverter.streamFrom(xml));
     }
 
 }
