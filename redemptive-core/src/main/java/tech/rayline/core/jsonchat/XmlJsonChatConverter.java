@@ -12,6 +12,7 @@ import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.ByteArrayInputStream;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -189,7 +190,7 @@ public final class XmlJsonChatConverter {
         return false;
     }
 
-    public static InputStream streamFrom(CharSequence sequence) throws UnsupportedEncodingException {
-        return new ByteArrayInputStream(sequence.toString().getBytes("UTF-8"));
+    public static InputStream streamFrom(CharSequence sequence) {
+        return new ByteArrayInputStream(sequence.toString().getBytes(StandardCharsets.UTF_8));
     }
 }
