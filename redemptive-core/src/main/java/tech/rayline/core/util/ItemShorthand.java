@@ -1,5 +1,6 @@
 package tech.rayline.core.util;
 
+import lombok.Getter;
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
@@ -11,7 +12,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public final class ItemShorthand {
+@Getter public final class ItemShorthand {
     private final Material material;
     private String name;
     private List<String> lore;
