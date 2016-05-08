@@ -3,6 +3,7 @@ package tech.rayline.core.rx;
 import lombok.Data;
 import lombok.Delegate;
 import lombok.EqualsAndHashCode;
+import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitTask;
 import rx.Scheduler;
@@ -50,7 +51,7 @@ public final class RxBukkitScheduler extends Scheduler {
 
         @Override
         public Subscription schedule(Action0 action, long delayTime, TimeUnit unit) {
-            if (unit.toMillis(delayTime) == 0 && concurrencyMode == ConcurrencyMode.SYNC) {
+            if (unit.toMillis(delayTime) == 0 && concurrencyMode == ConcurrencyMode.SYNC && Bukkit.getServer().isPrimaryThread()) {
                 action.call();
                 return Subscriptions.unsubscribed();
             }
