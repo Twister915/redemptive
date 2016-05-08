@@ -46,16 +46,22 @@ public abstract class RedemptivePlugin extends JavaPlugin {
     private PeriodicPlayerStreamer playerStreamer;
     private ResourceFileGraph resourceFileGraph;
 
-    @ResourceFile(raw = true, filename = "formats.yml") @ReadOnlyResource private YAMLConfigurationFile formatsFile;
+    @ResourceFile(raw = true, filename = "formats.yml")
+    @ReadOnlyResource
+    private YAMLConfigurationFile formatsFile;
 
-    @Getter(AccessLevel.NONE) private Object[] injected;
+    @Getter(AccessLevel.NONE)
+    private Object[] injected;
 
     //"abstract" methods
-    protected void onModuleEnable() throws Exception {}
-    protected void onModuleDisable() throws Exception {}
+    protected void onModuleEnable() throws Exception {
+    }
+
+    protected void onModuleDisable() throws Exception {
+    }
 
     @Override
-    public  void onLoad() {
+    public void onLoad() {
         //get libraries, first and foremost
         LibraryHandler.loadLibraries(this);
     }
@@ -130,11 +136,7 @@ public abstract class RedemptivePlugin extends JavaPlugin {
     }
 
     public final JsonMessageFormatter xmlFormatFromString(String xml) {
-        try {
-            return xmlFormatWith(XmlJsonChatConverter.streamFrom(xml));
-        } catch (UnsupportedEncodingException e) {
-            throw new IllegalStateException("Could not encode message to UTF-8", e);
-        }
+        return xmlFormatWith(XmlJsonChatConverter.streamFrom(xml));
     }
 
     public void saveAll() {
@@ -191,7 +193,8 @@ public abstract class RedemptivePlugin extends JavaPlugin {
         return command;
     }
 
-    @Deprecated public final void regsiterCommand(RDCommand... commands) {
+    @Deprecated
+    public final void regsiterCommand(RDCommand... commands) {
         for (RDCommand command : commands) registerCommand(command);
     }
 
