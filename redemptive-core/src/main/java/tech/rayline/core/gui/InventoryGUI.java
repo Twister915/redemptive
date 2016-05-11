@@ -1,6 +1,7 @@
 package tech.rayline.core.gui;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import org.bukkit.Bukkit;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
@@ -349,5 +350,9 @@ public class InventoryGUI {
                 return i;
         }
         throw new ArrayIndexOutOfBoundsException("There are no more slots in the inventory!");
+    }
+
+    public Collection<UUID> getObservers() {
+        return ImmutableSet.copyOf(observers);
     }
 }
