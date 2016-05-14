@@ -74,18 +74,27 @@ public final class XmlJsonChatConverter {
 
     private static String formatContent(String content, Map<String, String> variables) {
         content = ChatColor.translateAlternateColorCodes('&', content);
+        /*
+        Instead of iterating through each key like the last implementation, this
+        implementation searches for the key indicators, and replaces them, pulling
+        the value from the map instead of using each of the variables and searching
+        through. This should reduce the complexity from the original O(n) down to
+        a simple O(1) complexity in terms of the number of variables supplied,
+        meaning lots of variables can be shoved in without any real performance
+        hit.
+         */
         StringBuilder stringBuffer = new StringBuilder(content);
-        for (Map.Entry<String, String> stringStringEntry : variables.entrySet()) {
-            String key = "{{" + stringStringEntry.getKey() + "}}", value = stringStringEntry.getValue();
-            int lastIndex = 0;
-            while (lastIndex <= stringBuffer.length()) {
-                int nextIndex = stringBuffer.indexOf(key, lastIndex);
-                if (nextIndex == -1)
-                    break;
-
-                stringBuffer.replace(nextIndex, key.length(), value);
-                lastIndex = nextIndex + value.length();
-            }
+        int patternStart = 0;
+        // must have space to fit at least 5 characters (4 for {{ }} and 1 for actual key
+        while (patternStart < stringBuffer.length() - 4 && (patternStart = stringBuffer.indexOf("{{", patternStart)) != -1) {
+            int capKeyStart = stringBuffer.indexOf("}}", patternStart);
+            if (capKeyStart == -1)
+                break;
+            String key = stringBuffer.substring(patternStart + 2, capKeyStart);
+            String value = variables.get(key);
+            if (value != null)
+                stringBuffer.replace(patternStart, capKeyStart + 2, value);
+            patternStart = capKeyStart + 2;
         }
         return stringBuffer.toString();
     }

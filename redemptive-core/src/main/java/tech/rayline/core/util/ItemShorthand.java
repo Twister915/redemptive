@@ -12,7 +12,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-@Getter public final class ItemShorthand {
+@Getter
+public final class ItemShorthand {
     private final Material material;
     private String name;
     private List<String> lore;
@@ -97,12 +98,23 @@ import java.util.Map;
     public ItemStack get() {
         ItemStack item = new ItemStack(material);
         ItemMeta meta = item.getItemMeta();
-        if (name != null) meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', name));
+        if (name != null)
+            meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', name));
         if (lore != null) meta.setLore(lore);
         item.setItemMeta(meta);
         if (quantity > 1) item.setAmount(quantity);
         if (dataValue > 0) item.setDurability(dataValue);
         if (enchantments != null) item.addUnsafeEnchantments(enchantments);
         return item;
+    }
+
+    public ItemShorthand clone() {
+        ItemShorthand clone = new ItemShorthand(material);
+        clone.name = name;
+        clone.lore = lore == null ? null : new ArrayList<>(lore);
+        clone.enchantments = enchantments == null ? null : new HashMap<>(enchantments);
+        clone.dataValue = dataValue;
+        clone.quantity = quantity;
+        return clone;
     }
 }
