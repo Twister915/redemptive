@@ -1,5 +1,6 @@
 package tech.rayline.core.jsonchat;
 
+import org.bukkit.ChatColor;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.w3c.dom.Document;
@@ -71,7 +72,8 @@ public final class XmlJsonChatConverter {
         return elements;
     }
 
-    private static String replaceVars(String content, Map<String, String> variables) {
+    private static String formatContent(String content, Map<String, String> variables) {
+        content = ChatColor.translateAlternateColorCodes('&', content);
         StringBuilder stringBuffer = new StringBuilder(content);
         for (Map.Entry<String, String> stringStringEntry : variables.entrySet()) {
             String key = "{{" + stringStringEntry.getKey() + "}}", value = stringStringEntry.getValue();
@@ -113,7 +115,7 @@ public final class XmlJsonChatConverter {
         for (int i = 0; i < childNodes.getLength(); i++) {
             Node item = childNodes.item(i);
             if (item.getNodeType() == Node.TEXT_NODE) {
-                String content = replaceVars(item.getTextContent(), variables);
+                String content = formatContent(item.getTextContent(), variables);
                 if (elementContent.get("extra") == null) {
                     String previousContent = (String) elementContent.get("text");
                     elementContent.put("text", previousContent != null ? previousContent : "" +
@@ -179,7 +181,7 @@ public final class XmlJsonChatConverter {
             throw new JsonChatParseException("Cannot handle items at the moment, stay tuned!");
         } else if (childAchievement.size() == 1) {
             action = "achievement";
-            value = replaceVars(getFirstLevelTextContent(childAchievement.get(0)), variables);
+            value = formatContent(getFirstLevelTextContent(childAchievement.get(0)), variables);
         }
 
         if (value != null) {
@@ -197,7 +199,7 @@ public final class XmlJsonChatConverter {
             throw new JsonChatParseException("No (or invalid) action specified for click event!");
 
         jsonObject.put("action", action);
-        jsonObject.put("value", replaceVars(getFirstLevelTextContent(element), variables));
+        jsonObject.put("value", formatContent(getFirstLevelTextContent(element), variables));
         return jsonObject;
     }
 
