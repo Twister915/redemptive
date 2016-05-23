@@ -10,6 +10,7 @@ import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
 import rx.Observable;
 import rx.Subscriber;
@@ -30,7 +31,7 @@ import java.util.*;
  *
  * @version 2.0
  */
-public class InventoryGUI {
+public class InventoryGUI implements InventoryHolder {
     /**
      * A collection of all the players who currently have the inventory GUI open
      */
@@ -68,7 +69,7 @@ public class InventoryGUI {
         if (type == InventoryType.CHEST)
             throw new IllegalArgumentException("You must use the constructor accepting an integer, not InventoryType, if you wish to create a standard chest inventory!");
 
-        bukkitInventory = Bukkit.createInventory(null, type, title);
+        bukkitInventory = Bukkit.createInventory(this, type, title);
         mainSubscription = beginObserving();
     }
 
@@ -80,7 +81,7 @@ public class InventoryGUI {
      */
     public InventoryGUI(RedemptivePlugin plugin, int size, String title) {
         this.plugin = plugin;
-        bukkitInventory = Bukkit.createInventory(null, size, title);
+        bukkitInventory = Bukkit.createInventory(this, size, title);
         mainSubscription = beginObserving();
     }
 
@@ -96,7 +97,7 @@ public class InventoryGUI {
                     @Override
                     public Boolean call(InventoryClickEvent event) {
                         //noinspection SuspiciousMethodCalls
-                        return event.getInventory().getTitle().equals(bukkitInventory.getTitle()) && observers.contains(event.getWhoClicked().getUniqueId());
+                        return event.getInventory().getHolder().equals(InventoryGUI.this) && observers.contains(event.getWhoClicked().getUniqueId());
                     }
                 })
                 .subscribe(new Action1<InventoryClickEvent>() {
@@ -354,5 +355,10 @@ public class InventoryGUI {
 
     public Collection<UUID> getObservers() {
         return ImmutableSet.copyOf(observers);
+    }
+
+    @Override
+    public Inventory getInventory() {
+        return bukkitInventory;
     }
 }
