@@ -27,7 +27,7 @@ public final class Timeline {
         Collections.sort(nodes, new Comparator<TimelineNode>() {
             @Override
             public int compare(TimelineNode o1, TimelineNode o2) {
-                return (int) (o2.msAfter - o1.msAfter);
+                return (int) (o1.msAfter - o2.msAfter);
             }
         });
         for (TimelineNode node : nodes)
