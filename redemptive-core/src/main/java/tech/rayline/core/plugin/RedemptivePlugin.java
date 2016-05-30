@@ -5,11 +5,9 @@ import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.command.CommandMap;
 import org.bukkit.command.PluginCommand;
-import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerEvent;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -78,7 +76,8 @@ public abstract class RedemptivePlugin extends JavaPlugin {
 
             //init files
             if (!getClass().isAnnotationPresent(NoConfig.class))
-                saveDefaultConfig();
+                if (getResource("config.yml") != null)
+                    saveDefaultConfig();
 
             if (getClass().isAnnotationPresent(UsesFormats.class))
                 formatter = new Formatter(formatsFile);
