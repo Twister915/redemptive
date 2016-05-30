@@ -86,7 +86,8 @@ public abstract class RedemptivePlugin extends JavaPlugin {
 
             //init files
             if (!getClass().isAnnotationPresent(NoConfig.class))
-                saveDefaultConfig();
+                if (getResource("config.yml") != null)
+                    saveDefaultConfig();
 
             if (getClass().isAnnotationPresent(UsesFormats.class))
                 formatter = new Formatter(formatsFile);
