@@ -65,12 +65,13 @@ public final class RxBukkitScheduler extends Scheduler {
         private final CompositeSubscription parent;
         private boolean unsubscribed;
 
-        private RxBukkitTaskSubscription(final Action0 action, long time, TimeUnit unit, CompositeSubscription parent) {
+        private RxBukkitTaskSubscription(final Action0 action, long time, TimeUnit unit, final CompositeSubscription parent) {
             this.handle = actualSchedule(new Action0() {
                 @Override
                 public void call() {
                     action.call();
                     unsubscribed = true;
+                    parent.remove(RxBukkitTaskSubscription.this);
                 }
             }, (int) Math.round((double) unit.toMillis(time) / 50D));
             this.parent = parent;
