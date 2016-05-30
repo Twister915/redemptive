@@ -3,13 +3,13 @@ package tech.rayline.core.rx;
 import lombok.Data;
 import lombok.Delegate;
 import lombok.EqualsAndHashCode;
+import lombok.Getter;
 import org.bukkit.Bukkit;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitTask;
 import rx.Scheduler;
 import rx.Subscription;
 import rx.functions.Action0;
-import rx.internal.schedulers.ScheduledAction;
 import rx.subscriptions.CompositeSubscription;
 import rx.subscriptions.Subscriptions;
 import tech.rayline.core.util.RunnableShorthand;
@@ -50,21 +50,44 @@ public final class RxBukkitScheduler extends Scheduler {
         }
 
         @Override
-        public Subscription schedule(Action0 action, long delayTime, TimeUnit unit) {
+        public Subscription schedule(final Action0 action, long delayTime, TimeUnit unit) {
             if (unit.toMillis(delayTime) == 0 && concurrencyMode == ConcurrencyMode.SYNC && Bukkit.getServer().isPrimaryThread()) {
                 action.call();
                 return Subscriptions.unsubscribed();
             }
 
-            final BukkitTask bukkitTask = actualSchedule(action, (int) Math.round((double) unit.toMillis(delayTime) / 50D));
-            ScheduledAction scheduledAction = new ScheduledAction(action, allSubscriptions);
-            scheduledAction.add(Subscriptions.create(new Action0() {
+            return new RxBukkitTaskSubscription(action, delayTime, unit, allSubscriptions);
+        }
+    }
+
+    private final class RxBukkitTaskSubscription implements Subscription {
+        private final BukkitTask handle;
+        private final CompositeSubscription parent;
+        private boolean unsubscribed;
+
+        private RxBukkitTaskSubscription(final Action0 action, long time, TimeUnit unit, CompositeSubscription parent) {
+            this.handle = actualSchedule(new Action0() {
                 @Override
                 public void call() {
-                    bukkitTask.cancel();
+                    action.call();
+                    unsubscribed = true;
                 }
-            }));
-            return scheduledAction;
+            }, (int) Math.round((double) unit.toMillis(time) / 50D));
+            this.parent = parent;
+
+            parent.add(this);
+        }
+
+        @Override
+        public void unsubscribe() {
+            unsubscribed = true;
+            handle.cancel();
+            parent.remove(this);
+        }
+
+        @Override
+        public boolean isUnsubscribed() {
+            return unsubscribed;
         }
     }
 }
