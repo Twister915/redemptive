@@ -1,6 +1,7 @@
 package tech.rayline.core.plugin;
 
 import org.bukkit.ChatColor;
+import org.bukkit.configuration.file.FileConfiguration;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -15,7 +16,14 @@ public final class Formatter {
     }
 
     public FormatBuilder begin(String path) {
-        return new FormatBuilder(formatsFile.getConfig().getString(path));
+        // Throw a proper error
+        FileConfiguration config = formatsFile.getConfig();
+        if (config.contains(path)) {
+            return new FormatBuilder(config.getString(path));
+        } else {
+            // TODO probably a better exception for this
+            throw new RuntimeException("No such string at path: " + path + " in formats.yml");
+        }
     }
 
     public boolean has(String path) {
