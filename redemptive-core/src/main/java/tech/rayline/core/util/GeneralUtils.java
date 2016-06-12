@@ -81,7 +81,7 @@ public final class GeneralUtils {
             }, i * 3);
     }
 
-    private static  <T> T getRandom(T[] ts) {
+    private static <T> T getRandom(T[] ts) {
         return ts[((int) (Math.random() * ts.length))];
     }
 
@@ -117,7 +117,6 @@ public final class GeneralUtils {
             perNext = i;
             shortName = h;
         }
-
 
         TimeUnit(char d) {
             perNext = -1;

@@ -97,7 +97,7 @@ public class InventoryGUI implements InventoryHolder {
                     @Override
                     public Boolean call(InventoryClickEvent event) {
                         //noinspection SuspiciousMethodCalls
-                        return event.getInventory().getHolder().equals(InventoryGUI.this) && observers.contains(event.getWhoClicked().getUniqueId());
+                        return event.getInventory().getHolder() != null && event.getInventory().getHolder().equals(InventoryGUI.this) && observers.contains(event.getWhoClicked().getUniqueId());
                     }
                 })
                 .subscribe(new Action1<InventoryClickEvent>() {
