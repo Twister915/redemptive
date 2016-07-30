@@ -1,6 +1,5 @@
 package tech.rayline.core.command;
 
-import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableList;
 import lombok.AccessLevel;
 import lombok.Data;
@@ -146,7 +145,7 @@ public abstract class RDCommand implements CommandExecutor, TabCompleter {
 
             //Now that we've made it past the sub commands and permissions, STEP TWO: actually handle the command and it's args.
             if (getClass().isAnnotationPresent(AsyncCommand.class))
-                RunnableShorthand.forPlugin(plugin).async().with(new Runnable() {
+                RunnableShorthand.forPlugin(getPlugin()).async().with(new Runnable() {
                     @Override
                     public void run() {
                         try {
