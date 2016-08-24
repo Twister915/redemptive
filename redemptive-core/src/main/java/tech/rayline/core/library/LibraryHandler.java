@@ -24,8 +24,11 @@ import java.util.zip.ZipInputStream;
 
 public final class LibraryHandler {
     public static void loadLibraries(RedemptivePlugin plugin) {
-        Class<? extends RedemptivePlugin> aClass = plugin.getClass();
-        Set<MavenLibrary> libraries = getLibraries(aClass);
+        Set<MavenLibrary> libraries = getLibraries(plugin.getClass());
+        load(plugin, libraries.toArray(new MavenLibrary[libraries.size()]));
+    }
+
+    public static void load(RedemptivePlugin plugin, MavenLibrary... libraries) {
         Set<File> jars = new HashSet<>();
         for (MavenLibrary library : libraries) {
             try {
