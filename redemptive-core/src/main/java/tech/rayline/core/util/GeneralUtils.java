@@ -3,6 +3,7 @@ package tech.rayline.core.util;
 import org.bukkit.*;
 import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Firework;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.meta.FireworkMeta;
 import tech.rayline.core.plugin.RedemptivePlugin;
 
@@ -83,6 +84,13 @@ public final class GeneralUtils {
 
     private static <T> T getRandom(T[] ts) {
         return ts[((int) (Math.random() * ts.length))];
+    }
+
+    public static int getFreeSlots(Player player) {
+        int freeSlots = 0;
+        for (int i = 0; i < 36; i++) freeSlots += (player.getInventory().getItem(i) == null ? 1 : 0);
+
+        return freeSlots;
     }
 
     public static String formatSeconds(Integer seconds) {
