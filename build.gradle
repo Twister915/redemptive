@@ -1,9 +1,44 @@
+plugins {
+	id "net.linguica.maven-settings" version "0.3"
+}
+
+def currentVersion = '1.2.1-SNAPSHOT'
+
 group 'tech.rayline.redemptive'
-version '1.1-SNAPSHOT'
+version currentVersion
 
 subprojects {
+	apply plugin: 'java'
+	sourceCompatibility = 1.7
+	apply plugin: 'maven'
+	group 'tech.rayline.redemptive'
+	version currentVersion
+
+	repositories {
+		mavenCentral()
+
+		maven {
+			url 'https://nexus.solucorpus.com/repository/maven-all/'
+
+			credentials {
+				username nexusUsername
+				password nexusPassword
+			}
+		}
+	}
+
 	apply plugin: 'maven-publish'
 	publishing {
+		repositories {
+			maven {
+				url 'https://nexus.solucorpus.com/repository/solucorpus-inhouse/'
+
+				credentials {
+					username nexusUsername
+					password nexusPassword
+				}
+			}
+		}
 		publications {
 			mavenCustom(MavenPublication) {
 				from components.java
