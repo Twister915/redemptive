@@ -19,11 +19,6 @@ subprojects {
 
 		maven {
 			url 'https://nexus.solucorpus.com/repository/maven-all/'
-
-			credentials {
-				username nexusUsername
-				password nexusPassword
-			}
 		}
 	}
 
