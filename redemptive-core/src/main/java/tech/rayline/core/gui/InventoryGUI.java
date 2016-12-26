@@ -101,12 +101,14 @@ public class InventoryGUI implements InventoryHolder {
                     @Override
                     public Boolean call(InventoryClickEvent event) {
                         //noinspection SuspiciousMethodCalls
+                        System.out.println("returning on inv click for call method!");
                         return event.getInventory().equals(bukkitInventory) || observers.contains(event.getWhoClicked().getUniqueId());
                     }
                 })
                 .map(new Func1<InventoryClickEvent, InventoryClickEvent>() {
                     @Override
                     public InventoryClickEvent call(InventoryClickEvent inventoryClickEvent) {
+                        System.out.println("call event on click event was initiated and cancelled!");
                         inventoryClickEvent.setCancelled(true);
                         return inventoryClickEvent;
                     }
@@ -116,13 +118,17 @@ public class InventoryGUI implements InventoryHolder {
                     @Override
                     public void call(InventoryClickEvent event) {
                         try {
+                            System.out.println("inv click event called for " + event.getWhoClicked().getName());
                             InventoryGUIButton buttonAt = getButtonAt(event.getRawSlot());
                             if (buttonAt == null)
                                 return;
+
+                            System.out.println("button is not null at raw slot: " + event.getRawSlot());
                             
                             Player whoClicked = (Player) event.getWhoClicked();
                             try {
                                 buttonAt.onPlayerClick(whoClicked, ClickAction.from(event.getClick()));
+                                System.out.println("called on player click for " + whoClicked.getName() + " with action " + event.getClick().name());
                                 whoClicked.updateInventory();
                             } catch (EmptyHandlerException e) {
                                 SoundUtil.playTo(whoClicked, Sound.BLOCK_NOTE_PLING);
@@ -137,10 +143,14 @@ public class InventoryGUI implements InventoryHolder {
                 .filter(new Func1<InventoryMoveItemEvent, Boolean>() {
                     @Override
                     public Boolean call(InventoryMoveItemEvent event) {
+                        System.out.println("move event call method called.");
                         return checkInv(event.getInitiator()) || checkInv(event.getDestination());
                     }
 
                     private boolean checkInv(Inventory inventory) {
+                        System.out.println("Instance of player inventory: " + (inventory instanceof PlayerInventory));
+                        System.out.println("Observers contains? : " + observers.contains(((PlayerInventory) inventory).getHolder().getUniqueId()));
+                        System.out.println("Inventory equals: " + inventory.equals(bukkitInventory));
                         return (inventory instanceof PlayerInventory
                                 && observers.contains(((PlayerInventory) inventory).getHolder().getUniqueId()))
                                 || inventory.equals(bukkitInventory);
@@ -149,6 +159,7 @@ public class InventoryGUI implements InventoryHolder {
                 .subscribe(new Action1<InventoryMoveItemEvent>() {
                     @Override
                     public void call(InventoryMoveItemEvent event) {
+                        System.out.println("Move event cancelled");
                         event.setCancelled(true);
                     }
                 })
@@ -195,6 +206,7 @@ public class InventoryGUI implements InventoryHolder {
      * This will force the inventory to fall out of scope by clearing and un-subscribing various things
      */
     public void invalidate() {
+        System.out.println("invalidated!");
         mainSubscription.unsubscribe();
         for (UUID observer : observers)
             Bukkit.getPlayer(observer).closeInventory();
@@ -347,9 +359,12 @@ public class InventoryGUI implements InventoryHolder {
 
     //removes players from the observable set now that they've closed the inventory
     protected void inventoryClosed(Player player) {
+        System.out.println("inventoryClosed called");
         observers.remove(player.getUniqueId());
-        if (observers.size() == 0 && !mainSubscription.isUnsubscribed())
+        if (observers.size() == 0 && !mainSubscription.isUnsubscribed())  {
+            System.out.println("invalidating on close");
             invalidate();
+        }
     }
 
     //used to mark a slot for update
