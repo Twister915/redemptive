@@ -1,6 +1,7 @@
 package tech.rayline.core.gui;
 
 import com.google.common.collect.ImmutableList;
+
 import org.bukkit.Bukkit;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
@@ -10,6 +11,14 @@ import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
+
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.NoSuchElementException;
+import java.util.Set;
+import java.util.UUID;
+
 import rx.Observable;
 import rx.Subscriber;
 import rx.Subscription;
@@ -21,8 +30,6 @@ import rx.subscriptions.Subscriptions;
 import tech.rayline.core.command.EmptyHandlerException;
 import tech.rayline.core.plugin.RedemptivePlugin;
 import tech.rayline.core.util.SoundUtil;
-
-import java.util.*;
 
 /**
  * This class represents an InventoryGUI which can be opened for players
@@ -113,7 +120,7 @@ public class InventoryGUI {
                                 buttonAt.onPlayerClick(whoClicked, ClickAction.from(event.getClick()));
                                 whoClicked.updateInventory();
                             } catch (EmptyHandlerException e) {
-                                SoundUtil.playTo(whoClicked, Sound.NOTE_PLING);
+                                SoundUtil.playTo(whoClicked, Sound.BLOCK_NOTE_PLING);
                             }
                         } catch (Exception e) {
                             e.printStackTrace();
