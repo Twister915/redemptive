@@ -8,7 +8,6 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.logging.Level;
 
 @Data
@@ -38,9 +37,9 @@ public final class YAMLConfigurationFile {
         fileConfiguration = YamlConfiguration.loadConfiguration(configFile);
 
         // Look for defaults in the jar
-        InputStream defConfigStream = plugin.getResource(fileName);
-        if (defConfigStream != null) {
-            YamlConfiguration defConfig = YamlConfiguration.loadConfiguration(defConfigStream);
+        File file = new File(plugin.getDataFolder(), fileName);
+        if (file.exists()) {
+            YamlConfiguration defConfig = YamlConfiguration.loadConfiguration(file);
             fileConfiguration.setDefaults(defConfig);
         }
     }
